@@ -1,24 +1,26 @@
-# Fluent::Plugin::Geoip
+# fluent-plugin-geoip
 
 TODO: Write a gem description
 
 ## Installation
 
-Add this line to your application's Gemfile:
+install with `gem` or `fluent-gem` command as:
 
-    gem 'fluent-plugin-geoip'
+```
+# for fluentd
+$ gem install fluent-plugin-geoip
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install fluent-plugin-geoip
+# for td-agent
+$ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
+```
 
 ## Usage
 
 TODO: Write usage instructions here
+
+## TODO
+
+patches welcome!
 
 ## Contributing
 
@@ -27,3 +29,14 @@ TODO: Write usage instructions here
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## Copyright
+
+Copyright (c) 2013- Kentaro Yoshida (@yoshi_ken)
+
+## License
+
+Apache License, Version 2.0
+
+This product includes GeoLite data created by MaxMind, available from
+<a href="http://www.maxmind.com">http://www.maxmind.com</a>.
