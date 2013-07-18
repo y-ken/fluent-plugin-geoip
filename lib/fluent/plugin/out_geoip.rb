@@ -6,7 +6,7 @@ class Fluent::GeoipOutput < Fluent::Output
     super
   end
 
-  config_param :geoip_database, :string
+  config_param :geoip_database, :string, :default => 'data/GeoLiteCity.dat'
 
   def configure(conf)
     super
