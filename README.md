@@ -1,6 +1,6 @@
 # fluent-plugin-geoip
 
-TODO: Write a gem description
+Fluentd Output plugin to adds information about geographical location of IP addresses with Maxmind GeoIP databases.
 
 ## Installation
 
