@@ -19,23 +19,27 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 TODO: Write usage instructions here
 
 ```
-<match access>
+<match access.apache>
   type geoip
 
-  # merge options
-  merge_record           true  (default false)
-  merge_record_with_key  data  (none default)
+  # tag options
+  tag_prefix               geoip
+  remove_tag_prefix        access
 
-  # geoip options
-  city_with_key          city
-  latitude_with_key      lat
-  longitude_with_key     lon
-  country_code3_with_key country3
-  country_code_with_key  country
-  country_name_with_key  country_name
-  dma_code_with_key      dma
-  area_code_with_key     area
-  region_with_key        region
+  # merge options
+  merge_record             true  (default false)
+  merge_record_with_key    data  (none default)
+
+  # selectable geoip record
+  enable_key_city          city
+  enbale_key_latitude      lat
+  enbale_key_longitude     lon
+  enbale_key_country_code3 country3
+  enbale_key_country_code  country
+  enbale_key_country_name  country_name
+  enbale_key_dma_code      dma
+  enbale_key_area_code     area
+  enbale_key_region        region
 </match>
 ```
 
