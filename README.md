@@ -20,6 +20,9 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 <match access.apache>
   type geoip
 
+  # buffering time
+  flush_interval           1s
+
   # tag settings
   remove_tag_prefix        access.
   add_tag_prefix           geoip.
