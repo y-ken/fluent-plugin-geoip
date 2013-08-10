@@ -66,6 +66,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
     enable_key_longitude lon
     remove_tag_prefix    test.
     add_tag_prefix       debug.
+    flush_interval       5s
   </store>
 </match>
 
