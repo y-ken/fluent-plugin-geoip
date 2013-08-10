@@ -6,6 +6,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     super
   end
 
+  GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
   config_param :geoip_database, :string, :default => 'data/GeoLiteCity.dat'
 
   include Fluent::HandleTagNameMixin
@@ -15,8 +16,12 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   def configure(conf)
     super
     
+    conf.keys.select{|k| k =~ /^enable_key_/}.map{|k| k.sub('enable_key_','')}.each do |key|
+      raise Fluent::ConfigError, "geoip: unsupported key #{key}" unless GEOIP_KEYS.include?(key)
+    end
+
     if ( !@remove_tag_prefix && !@remove_tag_suffix && !@add_tag_prefix && !@add_tag_suffix )
-      raise ConfigError, "geoip: Set remove_tag_prefix, remove_tag_suffix, add_tag_prefix or add_tag_suffix."
+      raise Fluent::ConfigError, "geoip: missing remove_tag_prefix, remove_tag_suffix, add_tag_prefix or add_tag_suffix."
     end
     
     @geoip = GeoIP::City.new(@geoip_database, :memory, false)
