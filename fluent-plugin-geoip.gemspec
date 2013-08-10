@@ -5,11 +5,10 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 Gem::Specification.new do |spec|
   spec.name          = "fluent-plugin-geoip"
   spec.version       = "0.0.1"
-  spec.authors       = ["y-ken"]
+  spec.authors       = ["Kentaro Yoshida"]
   spec.email         = ["y.ken.studio@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
-  spec.homepage      = ""
+  spec.summary       = %q{Fluentd Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.}
+  spec.homepage      = "https://github.com/y-ken/fluent-plugin-geoip"
   spec.license       = "Apache License, Version 2.0"
 
   spec.files         = `git ls-files`.split($/)

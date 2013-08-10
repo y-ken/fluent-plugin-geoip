@@ -1,6 +1,6 @@
 # fluent-plugin-geoip
 
-Fluentd Output plugin to adds information about geographical location of IP addresses with Maxmind GeoIP databases.
+Fluentd Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
 
 ## Installation
 
