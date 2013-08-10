@@ -18,9 +18,10 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     super
 
     @geoip_keys_map = Hash.new
-    conf.keys.select{|k| k =~ /^enable_key_/}.map{|k| k.sub('enable_key_','')}.each do |key|
-      raise Fluent::ConfigError, "geoip: unsupported key #{key}" unless GEOIP_KEYS.include?(key)
-      @geoip_keys_map.store(key, conf["enable_key_#{key}"])
+    conf.keys.select{|k| k =~ /^enable_key_/}.each do |key|
+      geoip_key_name = key.sub('enable_key_','')
+      raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key_name}" unless GEOIP_KEYS.include?(geoip_key_name)
+      @geoip_keys_map.store(geoip_key_name, conf[key])
     end
 
     if ( !@remove_tag_prefix && !@remove_tag_suffix && !@add_tag_prefix && !@add_tag_suffix )
