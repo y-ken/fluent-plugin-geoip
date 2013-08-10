@@ -17,8 +17,10 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   def configure(conf)
     super
     
+    @geoip_keys_map = Hash.new
     conf.keys.select{|k| k =~ /^enable_key_/}.map{|k| k.sub('enable_key_','')}.each do |key|
       raise Fluent::ConfigError, "geoip: unsupported key #{key}" unless GEOIP_KEYS.include?(key)
+      @geoip_keys_map.store(key, conf["enable_key_#{key}"])
     end
 
     if ( !@remove_tag_prefix && !@remove_tag_suffix && !@add_tag_prefix && !@add_tag_suffix )
@@ -43,8 +45,11 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   def write(chunk)
     chunk.msgpack_each do |tag, time, record|
       result = @geoip.look_up(record[@geoip_lookup_key])
-      $log.info "geoip: #{record['host']} : #{result}"
-      Fluent::Engine.emit(tag, time, result)
+      @geoip_keys_map.each do |geoip_key,record_key|
+        record.store(record_key, result[geoip_key.to_sym])
+      end
+      $log.info "geoip: record:#{record}, result:#{result}"
+      Fluent::Engine.emit(tag, time, record)
     end
   end
 end
