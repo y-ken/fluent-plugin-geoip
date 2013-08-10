@@ -1,18 +1,19 @@
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
   
-  def initialize
-    require 'geoip.bundle'
-    super
-  end
-
   GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
   config_param :geoip_database, :string, :default => 'data/GeoLiteCity.dat'
+  config_param :geoip_lookup_key, :string, :default => 'host'
 
   include Fluent::HandleTagNameMixin
   include Fluent::SetTagKeyMixin
   config_set_default :include_tag_key, false
 
+  def initialize
+    require 'geoip.bundle'
+    super
+  end
+  
   def configure(conf)
     super
     
@@ -41,7 +42,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
 
   def write(chunk)
     chunk.msgpack_each do |tag, time, record|
-      result = @geoip.look_up(record['host'])
+      result = @geoip.look_up(record[@geoip_lookup_key])
       $log.info "geoip: #{record['host']} : #{result}"
       Fluent::Engine.emit(tag, time, result)
     end
