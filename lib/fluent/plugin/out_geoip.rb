@@ -16,7 +16,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   
   def configure(conf)
     super
-    
+
     @geoip_keys_map = Hash.new
     conf.keys.select{|k| k =~ /^enable_key_/}.map{|k| k.sub('enable_key_','')}.each do |key|
       raise Fluent::ConfigError, "geoip: unsupported key #{key}" unless GEOIP_KEYS.include?(key)
@@ -26,7 +26,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     if ( !@remove_tag_prefix && !@remove_tag_suffix && !@add_tag_prefix && !@add_tag_suffix )
       raise Fluent::ConfigError, "geoip: missing remove_tag_prefix, remove_tag_suffix, add_tag_prefix or add_tag_suffix."
     end
-    
+
     @geoip = GeoIP::City.new(@geoip_database, :memory, false)
   end
 

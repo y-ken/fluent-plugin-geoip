@@ -33,14 +33,14 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 
   # record settings
   enable_key_city          geoip_city
-  enbale_key_latitude      geoip_lat
-  enbale_key_longitude     geoip_lon
-  enbale_key_country_code3 geoip_country3
-  enbale_key_country_code  geoip_country
-  enbale_key_country_name  geoip_country_name
-  enbale_key_dma_code      geoip_dma
-  enbale_key_area_code     geoip_area
-  enbale_key_region        geoip_region
+  enable_key_latitude      geoip_lat
+  enable_key_longitude     geoip_lon
+  enable_key_country_code3 geoip_country3
+  enable_key_country_code  geoip_country
+  enable_key_country_name  geoip_country_name
+  enable_key_dma_code      geoip_dma
+  enable_key_area_code     geoip_area
+  enable_key_region        geoip_region
 </match>
 ```
 
@@ -62,8 +62,8 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
     type geoip
     geoip_lookup_key     host
     enable_key_city      city
-    enbale_key_latitude  lat
-    enbale_key_longitude lon
+    enable_key_latitude  lat
+    enable_key_longitude lon
     remove_tag_prefix    test.
     add_tag_prefix       debug.
   </store>
