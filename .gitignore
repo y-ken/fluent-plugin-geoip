@@ -11,6 +11,9 @@ spec/reports
 test/tmp
 test/version_tmp
 tmp
+*.swp
+vendor/
+Gemfile.lock
 
 # YARD artifacts
 .yardoc
