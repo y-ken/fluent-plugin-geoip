@@ -10,7 +10,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   config_set_default :include_tag_key, false
 
   def initialize
-    require 'geoip.bundle'
+    require 'geoip'
     super
   end
   
