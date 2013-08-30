@@ -44,4 +44,17 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal 'Mountain View', emits[0][2]['geoip_city']
   end
 
+  def test_emit_with_unknown_address
+    d1 = create_driver(CONFIG, 'input.access')
+    d1.run do
+      # 203.0.113.1 is a test address described in RFC5737
+      d1.emit({'host' => '203.0.113.1', 'message' => 'action foo'})
+    end
+    emits = d1.emits
+    assert_equal 1, emits.length
+    p emits[0]
+    assert_equal 'geoip.access', emits[0][0] # tag
+    assert_equal nil, emits[0][2]['geoip_city']
+  end
+
 end
