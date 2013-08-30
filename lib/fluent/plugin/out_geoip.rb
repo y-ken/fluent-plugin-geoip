@@ -47,7 +47,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     chunk.msgpack_each do |tag, time, record|
       result = @geoip.look_up(record[@geoip_lookup_key])
       if result.nil?
-        $log.warn "geoip: failed to look up from the GeoIP DB.", :addr => record[@geoip_lookup_key]
+        $log.warn "geoip: lookup failed. ", :record => record[@geoip_lookup_key]
       else
         @geoip_keys_map.each do |geoip_key,record_key|
           record.store(record_key, result[geoip_key.to_sym])
