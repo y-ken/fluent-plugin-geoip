@@ -53,7 +53,6 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
           record.store(record_key, result[geoip_key.to_sym])
         end
       end
-      $log.info "geoip: record:#{record}, result:#{result}"
       Fluent::Engine.emit(tag, time, record)
     end
   end
