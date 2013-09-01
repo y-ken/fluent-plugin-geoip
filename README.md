@@ -2,6 +2,14 @@
 
 Fluentd Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
 
+fluent-plugin-geoip has bundled cost-free [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.  
+Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.  
+
+The accuracy details for GeoLite City (free) and GeoIP City (purchased) has described at the page below.
+
+* http://www.maxmind.com/en/geolite_city_accuracy ([lang:ja](http://www.maxmind.com/ja/geolite_city_accuracy))
+* http://www.maxmind.com/en/city_accuracy ([lang:ja](http://www.maxmind.com/ja/city_accuracy))
+
 ## Installation
 
 install with `gem` or `fluent-gem` command as:
@@ -20,7 +28,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 <match access.apache>
   type geoip
 
-  # buffering time
+  # buffering time (default: 60s)
   flush_interval           1s
 
   # tag settings
@@ -28,10 +36,13 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   add_tag_prefix           geoip.
   include_tag_key          false
 
-  # geoip settings
+  # specify geoip lookup field (default: host)
   geoip_lookup_key         host
 
-  # record settings
+  # specify geoip database (using bundled GeoLiteCity databse by default)
+  geoip_database           'data/GeoLiteCity.dat'
+
+  # record settings (enable more than one keys required.)
   enable_key_city          geoip_city
   enable_key_latitude      geoip_lat
   enable_key_longitude     geoip_lon
@@ -89,8 +100,8 @@ $ tail /var/log/td-agent/td-agent.log
 
 ## Articles
 
-* [IPアドレスを元に位置情報をリアルタイムに付与する fluent-plugin-geoip v0.0.1をリリースしました #fluentd - Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released)
-  http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released
+* [IPアドレスを元に位置情報をリアルタイムに付与する fluent-plugin-geoip v0.0.1をリリースしました #fluentd - Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released)  
+http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released
 
 ## TODO
 
