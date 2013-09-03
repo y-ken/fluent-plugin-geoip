@@ -1,4 +1,4 @@
-# fluent-plugin-geoip
+# fluent-plugin-geoip [![Build Status](https://travis-ci.org/y-ken/fluent-plugin-geoip.png?branch=master)](https://travis-ci.org/y-ken/fluent-plugin-geoip)
 
 Fluentd Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
 
