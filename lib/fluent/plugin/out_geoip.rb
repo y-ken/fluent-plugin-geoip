@@ -53,12 +53,9 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     address = record[@geoip_lookup_key]
     return record if address.nil?
     result = @geoip.look_up(address)
-    if result.nil?
-      $log.info "geoip: lookup failed.", :address => address
-    else
-      @geoip_keys_map.each do |geoip_key,record_key|
-        record.store(record_key, result[geoip_key.to_sym])
-      end
+    return record if result.nil?
+    @geoip_keys_map.each do |geoip_key,record_key|
+      record.store(record_key, result[geoip_key.to_sym])
     end
     return record
   end
