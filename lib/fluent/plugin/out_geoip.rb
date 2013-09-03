@@ -2,7 +2,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
   
   GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
-  config_param :geoip_database, :string, :default => 'data/GeoLiteCity.dat'
+  config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
   config_param :geoip_lookup_key, :string, :default => 'host'
 
   include Fluent::HandleTagNameMixin
