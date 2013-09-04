@@ -115,6 +115,12 @@ $ tail /var/log/td-agent/td-agent.log
 * [IPアドレスを元に位置情報をリアルタイムに付与する fluent-plugin-geoip v0.0.1をリリースしました #fluentd - Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released)  
 http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released
 
+* [初の安定版 fluent-plugin-geoip v0.0.3 をリリースしました #fluentd- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.3)  
+http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.3
+
+* [fluent-plugin-geoip v0.0.4 をリリースしました。ElasticSearch＋Kibanaの世界地図に位置情報をプロットするために必要なFluentdの設定サンプルも紹介します- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4)  
+http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4
+
 ## TODO
 
 Pull requests are very welcome!!
