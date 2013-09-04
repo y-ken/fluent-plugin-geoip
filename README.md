@@ -10,11 +10,23 @@ The accuracy details for GeoLite City (free) and GeoIP City (purchased) has desc
 * http://www.maxmind.com/en/geolite_city_accuracy ([lang:ja](http://www.maxmind.com/ja/geolite_city_accuracy))
 * http://www.maxmind.com/en/city_accuracy ([lang:ja](http://www.maxmind.com/ja/city_accuracy))
 
+## Dependency
+
+before use, install dependent library as:
+
+```bash
+# for RHEL/CentOS
+$ sudo yum install geoip-devel --enablerepo=epel
+
+# for Ubuntu/Debian
+$ sudo apt-get install libgeoip-dev
+```
+
 ## Installation
 
 install with `gem` or `fluent-gem` command as:
 
-```
+```bash
 # for fluentd
 $ gem install fluent-plugin-geoip
 
