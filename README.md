@@ -124,6 +124,9 @@ http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.3
 * [fluent-plugin-geoip v0.0.4 をリリースしました。ElasticSearch＋Kibanaの世界地図に位置情報をプロットするために必要なFluentdの設定サンプルも紹介します- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4)  
 http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4
 
+* [Released GeoIP plugin to work together with ElasticSearch + Kibana v3](https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion)  
+https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion
+
 ## TODO
 
 Pull requests are very welcome!!
