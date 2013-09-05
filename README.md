@@ -110,7 +110,7 @@ $ tail /var/log/td-agent/td-agent.log
 2013-08-04 16:21:32 +0900 debug.geoip: {"host":"66.102.9.80","message":"test","city":"Mountain View","lat":37.4192008972168,"lon":-122.05740356445312}
 ```
 
-For more details of geoip data format is described at the page below.  
+For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.  
 http://dev.maxmind.com/geoip/legacy/csv/
 
 ## Articles
