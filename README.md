@@ -54,7 +54,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   # specify geoip database (using bundled GeoLiteCity databse by default)
   geoip_database           'data/GeoLiteCity.dat'
 
-  # record settings (enable more than one keys required.)
+  # record settings (enable more than one keys are required.)
   enable_key_city          geoip_city
   enable_key_latitude      geoip_lat
   enable_key_longitude     geoip_lon
@@ -126,6 +126,9 @@ http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4
 
 * [Released GeoIP plugin to work together with ElasticSearch + Kibana v3](https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion)  
 https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion
+
+* [Fluentd、Amazon RedshiftとTableauを用いたカジュアルなデータ可視化 | SmartNews開発者ブログ](http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-redshift-and-tableau/)  
+http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-redshift-and-tableau/
 
 ## TODO
 
