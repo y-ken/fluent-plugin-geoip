@@ -43,6 +43,9 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   # buffering time (default: 60s)
   flush_interval           1s
 
+  # Queued chunks are flushed at shutdown process.
+  flush_at_shutdown yes
+
   # tag settings
   remove_tag_prefix        access.
   add_tag_prefix           geoip.
