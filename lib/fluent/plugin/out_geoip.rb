@@ -1,7 +1,7 @@
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
 
-  GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
+  GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region lonlat)
   config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
   config_param :geoip_lookup_key, :string, :default => 'host'
 
@@ -67,7 +67,11 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     result = @geoip.look_up(address)
     return record if result.nil?
     @geoip_keys_map.each do |geoip_key,record_key|
-      record.store(record_key, result[geoip_key.to_sym])
+      if geoip_key == 'lonlat'
+        record.store(record_key, [result[:longitude], result[:latitude]])
+      else
+        record.store(record_key, result[geoip_key.to_sym])
+      end
     end
     return record
   end
