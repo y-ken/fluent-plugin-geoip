@@ -8,6 +8,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   include Fluent::HandleTagNameMixin
   include Fluent::SetTagKeyMixin
   config_set_default :include_tag_key, false
+  attr_reader :geoip_keys_map
 
   def initialize
     require 'geoip'
@@ -21,11 +22,19 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     conf.keys.select{|k| k =~ /^enable_key_/}.each do |key|
       geoip_key_name = key.sub('enable_key_','')
       raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key_name}" unless GEOIP_KEYS.include?(geoip_key_name)
-      @geoip_keys_map.store(geoip_key_name, conf[key])
+      @geoip_keys_map.store(geoip_key_name, conf[key].split(/\s*,\s*/))
     end
 
-    @geoip_lookup_key = @geoip_lookup_key.split(".")
-
+    @geoip_lookup_key = @geoip_lookup_key.split(/\s*,\s*/).map {|lookupkey|
+      lookupkey.split(".")
+    }
+    if @geoip_lookup_key.size > 1
+      @geoip_keys_map.each{|name, key|
+        if key.size != @geoip_lookup_key.size
+          raise Fluent::ConfigError, "geoip: lookup key length is not match #{name}"
+        end
+      }
+    end
 
     if ( !@remove_tag_prefix && !@remove_tag_suffix && !@add_tag_prefix && !@add_tag_suffix )
       raise Fluent::ConfigError, "geoip: missing remove_tag_prefix, remove_tag_suffix, add_tag_prefix or add_tag_suffix."
@@ -53,21 +62,25 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   end
 
   def get_address(record)
-    obj = record
-    @geoip_lookup_key.each do |key|
-      return nil if not obj.has_key?(key)
-      obj = obj[key]
-    end
-    obj
+    @geoip_lookup_key.map {|key|
+      obj = record
+      key.each {|k|
+        break obj = nil if not obj.has_key?(k)
+        obj = obj[k]
+      }
+      obj
+    }
   end
 
   def add_geoip_field(record)
-    address = get_address(record)
-    return record if address.nil?
-    result = @geoip.look_up(address)
-    return record if result.nil?
-    @geoip_keys_map.each do |geoip_key,record_key|
-      record.store(record_key, result[geoip_key.to_sym])
+    addresses = get_address(record)
+    return record if addresses.all? {|address| address == nil }
+    results = addresses.map {|address| @geoip.look_up(address) }
+    return record if results.all? {|result| result == nil }
+    @geoip_keys_map.each do |geoip_key,record_keys|
+      record_keys.each_with_index {|record_key, idx|
+        record.store(record_key, results[idx][geoip_key.to_sym])
+      }
     end
     return record
   end
