@@ -132,7 +132,6 @@ class GeoipOutputTest < Test::Unit::TestCase
       d1.emit({'message' => 'missing field'})
     end
     emits = d1.emits
-    p d1
     assert_equal 2, emits.length
     assert_equal 'geoip.access', emits[0][0] # tag
     assert_equal 'Mountain View', emits[0][2]['from_city']

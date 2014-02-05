@@ -36,29 +36,18 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 
 ## Usage
 
-```
+```xml
 <match access.apache>
   type geoip
 
-  # buffering time (default: 60s)
-  flush_interval           1s
-
-  # Queued chunks are flushed at shutdown process.
-  flush_at_shutdown yes
-
-  # tag settings
-  remove_tag_prefix        access.
-  add_tag_prefix           geoip.
-  include_tag_key          false
-
-  # specify geoip lookup field (default: host)
+  # Specify geoip lookup field (default: host)
   # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
   geoip_lookup_key         host
 
-  # specify geoip database (using bundled GeoLiteCity databse by default)
+  # Specify geoip database (using bundled GeoLiteCity databse by default)
   geoip_database           'data/GeoLiteCity.dat'
 
-  # record settings (enable more than one keys are required.)
+  # Set adding field of geolocate results (more than one settings are required.)
   enable_key_city          geoip_city
   enable_key_latitude      geoip_lat
   enable_key_longitude     geoip_lon
@@ -68,6 +57,36 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   enable_key_dma_code      geoip_dma
   enable_key_area_code     geoip_area
   enable_key_region        geoip_region
+
+  # Setting for tag
+  remove_tag_prefix        access.
+  add_tag_prefix           geoip.
+  include_tag_key          false
+
+  # Buffering time (default: 60s)
+  flush_interval           1s
+</match>
+```
+
+#### Tips: how to geolocate multiple key
+
+```xml
+<match access.apache>
+  type geoip
+
+  # Set ip address key to geolocate
+  geoip_lookup_key        user1_host, user2_host
+
+  # Set adding field of geolocate results
+  enable_key_city         user1_city, user2_city
+  enable_key_country_name user1_country, user2_country
+
+  # Setting for tag
+  remove_tag_prefix       access.
+  add_tag_prefix          geoip.
+
+  # Buffering time
+  flush_interval          1s
 </match>
 ```
 
@@ -75,7 +94,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 
 #### configuration
 
-```
+```xml
 <source>
   type forward
 </source>
@@ -104,7 +123,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 
 #### result
 
-```
+```bash
 # forward record with Google's ip address.
 $ echo '{"host":"66.102.9.80","message":"test"}' | fluent-cat test.geoip
 
