@@ -2,8 +2,8 @@
 
 Fluentd Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
 
-fluent-plugin-geoip has bundled cost-free [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.  
-Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.  
+fluent-plugin-geoip has bundled cost-free [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.
+Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.
 
 The accuracy details for GeoLite City (free) and GeoIP City (purchased) has described at the page below.
 
@@ -68,6 +68,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   enable_key_dma_code      geoip_dma
   enable_key_area_code     geoip_area
   enable_key_region        geoip_region
+  enable_key_lonlat        geoip_lonlat
 </match>
 ```
 
@@ -114,24 +115,24 @@ $ tail /var/log/td-agent/td-agent.log
 2013-08-04 16:21:32 +0900 debug.geoip: {"host":"66.102.9.80","message":"test","city":"Mountain View","lat":37.4192008972168,"lon":-122.05740356445312}
 ```
 
-For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.  
+For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.
 http://dev.maxmind.com/geoip/legacy/csv/
 
 ## Articles
 
-* [IPアドレスを元に位置情報をリアルタイムに付与する fluent-plugin-geoip v0.0.1をリリースしました #fluentd - Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released)  
+* [IPアドレスを元に位置情報をリアルタイムに付与する fluent-plugin-geoip v0.0.1をリリースしました #fluentd - Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released)
 http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released
 
-* [初の安定版 fluent-plugin-geoip v0.0.3 をリリースしました #fluentd- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.3)  
+* [初の安定版 fluent-plugin-geoip v0.0.3 をリリースしました #fluentd- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.3)
 http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.3
 
-* [fluent-plugin-geoip v0.0.4 をリリースしました。ElasticSearch＋Kibanaの世界地図に位置情報をプロットするために必要なFluentdの設定サンプルも紹介します- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4)  
+* [fluent-plugin-geoip v0.0.4 をリリースしました。ElasticSearch＋Kibanaの世界地図に位置情報をプロットするために必要なFluentdの設定サンプルも紹介します- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4)
 http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4
 
-* [Released GeoIP plugin to work together with ElasticSearch + Kibana v3](https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion)  
+* [Released GeoIP plugin to work together with ElasticSearch + Kibana v3](https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion)
 https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion
 
-* [Fluentd、Amazon RedshiftとTableauを用いたカジュアルなデータ可視化 | SmartNews開発者ブログ](http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-redshift-and-tableau/)  
+* [Fluentd、Amazon RedshiftとTableauを用いたカジュアルなデータ可視化 | SmartNews開発者ブログ](http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-redshift-and-tableau/)
 http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-redshift-and-tableau/
 
 ## TODO
