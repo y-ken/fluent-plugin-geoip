@@ -28,8 +28,29 @@ class GeoipOutputTest < Test::Unit::TestCase
       remove_tag_prefix input.
       add_tag_prefix    geoip.
     ]
-    puts d.instance.inspect
     assert_equal 'geoip_city', d.instance.config['enable_key_city']
+    assert_equal ['geoip_city'], d.instance.geoip_keys_map['city']
+
+    # multiple key config
+    d = create_driver %[
+      geoip_lookup_key  from.ip, to.ip
+      enable_key_city   from_city, to_city
+      remove_tag_prefix input.
+      add_tag_prefix    geoip.
+    ]
+    assert_equal 'from_city, to_city', d.instance.config['enable_key_city']
+    assert_equal ['from_city', 'to_city'], d.instance.geoip_keys_map['city']
+
+    # multiple key config (bad configure)
+    assert_raise(Fluent::ConfigError) {
+      d = create_driver %[
+        geoip_lookup_key  from.ip, to.ip
+        enable_key_city   from_city
+        enable_key_region from_region
+        remove_tag_prefix input.
+        add_tag_prefix    geoip.
+      ]
+    }
   end
 
   def test_emit
@@ -40,10 +61,8 @@ class GeoipOutputTest < Test::Unit::TestCase
     end
     emits = d1.emits
     assert_equal 2, emits.length
-    # p emits[0]
     assert_equal 'geoip.access', emits[0][0] # tag
     assert_equal 'Mountain View', emits[0][2]['geoip_city']
-    # p emits[1]
     assert_equal nil, emits[1][2]['geoip_city']
   end
 
@@ -60,10 +79,8 @@ class GeoipOutputTest < Test::Unit::TestCase
     end
     emits = d1.emits
     assert_equal 2, emits.length
-    p emits[0]
     assert_equal 'geoip.access', emits[0][0] # tag
     assert_equal 'Mountain View', emits[0][2]['geoip_city']
-    p emits[1]
     assert_equal nil, emits[1][2]['geoip_city']
   end
 
@@ -76,12 +93,53 @@ class GeoipOutputTest < Test::Unit::TestCase
     end
     emits = d1.emits
     assert_equal 2, emits.length
-    # p emits[0]
     assert_equal 'geoip.access', emits[0][0] # tag
     assert_equal nil, emits[0][2]['geoip_city']
-    # p emits[1]
     assert_equal 'geoip.access', emits[1][0] # tag
     assert_equal nil, emits[1][2]['geoip_city']
+  end
+
+  def test_emit_multiple_key
+    d1 = create_driver(%[
+      geoip_lookup_key  from.ip, to.ip
+      enable_key_city   from_city, to_city
+      remove_tag_prefix input.
+      add_tag_prefix    geoip.
+    ], 'input.access')
+    d1.run do
+      d1.emit({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.95.42'}})
+      d1.emit({'message' => 'missing field'})
+    end
+    emits = d1.emits
+    assert_equal 2, emits.length
+    assert_equal 'geoip.access', emits[0][0] # tag
+    assert_equal 'Mountain View', emits[0][2]['from_city']
+    assert_equal 'Musashino', emits[0][2]['to_city']
+    assert_equal nil, emits[1][2]['from_city']
+    assert_equal nil, emits[1][2]['to_city']
+  end
+
+  def test_emit_multiple_key_multiple_record
+    d1 = create_driver(%[
+      geoip_lookup_key  from.ip, to.ip
+      enable_key_city   from_city, to_city
+      enable_key_country_name from_country, to_country
+      remove_tag_prefix input.
+      add_tag_prefix    geoip.
+    ], 'input.access')
+    d1.run do
+      d1.emit({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.95.42'}})
+      d1.emit({'message' => 'missing field'})
+    end
+    emits = d1.emits
+    assert_equal 2, emits.length
+    assert_equal 'geoip.access', emits[0][0] # tag
+    assert_equal 'Mountain View', emits[0][2]['from_city']
+    assert_equal 'United States', emits[0][2]['from_country']
+    assert_equal 'Musashino', emits[0][2]['to_city']
+    assert_equal 'Japan', emits[0][2]['to_country']
+    assert_equal nil, emits[1][2]['from_city']
+    assert_equal nil, emits[1][2]['to_city']
   end
 
   def test_emit_lonlat
