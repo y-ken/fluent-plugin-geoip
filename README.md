@@ -62,7 +62,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   remove_tag_prefix        access.
   tag                      geoip.
 
-  # Buffering time (default: 60s)
+  # Buffering time (default: 0s)
   flush_interval           1s
 </match>
 ```
