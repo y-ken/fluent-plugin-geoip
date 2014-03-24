@@ -1,13 +1,20 @@
+require 'fluent/mixin/rewrite_tag_name'
+
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
 
   GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
   config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
   config_param :geoip_lookup_key, :string, :default => 'host'
+  config_param :tag, :string, :default => nil
 
   include Fluent::HandleTagNameMixin
   include Fluent::SetTagKeyMixin
   config_set_default :include_tag_key, false
+
+  include Fluent::Mixin::RewriteTagName
+  config_param :hostname_command, :string, :default => 'hostname'
+
   attr_reader :geoip_keys_map
 
   def initialize
@@ -36,8 +43,8 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
       }
     end
 
-    if ( !@remove_tag_prefix && !@remove_tag_suffix && !@add_tag_prefix && !@add_tag_suffix )
-      raise Fluent::ConfigError, "geoip: missing remove_tag_prefix, remove_tag_suffix, add_tag_prefix or add_tag_suffix."
+    if ( !@tag && !@remove_tag_prefix && !@remove_tag_suffix && !@add_tag_prefix && !@add_tag_suffix )
+      raise Fluent::ConfigError, "geoip: required at least one option of 'tag', 'remove_tag_prefix', 'remove_tag_suffix', 'add_tag_prefix', 'add_tag_suffix'."
     end
 
     @geoip = GeoIP::City.new(@geoip_database, :memory, false)

@@ -58,10 +58,9 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   enable_key_area_code     geoip_area
   enable_key_region        geoip_region
 
-  # Setting for tag
+  # Settings for tag
   remove_tag_prefix        access.
-  add_tag_prefix           geoip.
-  include_tag_key          false
+  tag                      geoip.
 
   # Buffering time (default: 60s)
   flush_interval           1s
@@ -135,6 +134,42 @@ $ tail /var/log/td-agent/td-agent.log
 
 For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.  
 http://dev.maxmind.com/geoip/legacy/csv/
+
+## Parameters
+
+* `enable_key_*` (example: enable_key_city)
+  * city
+  * latitude
+  * longitude
+  * country_code3
+  * country_code
+  * country_name
+  * dma_code
+  * area_code
+  * region
+
+Set adding field of geolocate results (more than one settings are required.)
+
+* `include_tag_key` (default: false)
+* `tag_key`
+
+Add original tag name into filtered record using SetTagKeyMixin.<br />
+Further details are written at http://docs.fluentd.org/articles/in_exec
+
+* `remove_tag_prefix`
+* `remove_tag_suffix`
+* `add_tag_prefix`
+* `add_tag_suffix`
+
+Set one or more option are required unless using `tag` option for editing tag name. (HandleTagNameMixin feature)
+
+* `tag`
+
+On using this option with tag placeholder like `tag geoip.${tag}` (test code is available at [test_out_geoip.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/test/plugin/test_out_geoip.rb)), it will be overwrite after these options affected. which are remove_tag_prefix, remove_tag_suffix, add_tag_prefix and add_tag_suffix.
+
+* `flush_interval` (default: 0 sec)
+
+Set buffering time to execute bulk lookup geoip.
 
 ## Articles
 
