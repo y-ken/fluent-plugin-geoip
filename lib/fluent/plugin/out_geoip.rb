@@ -15,6 +15,8 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   include Fluent::Mixin::RewriteTagName
   config_param :hostname_command, :string, :default => 'hostname'
 
+  config_param :flush_interval, :time, :default => 0
+
   attr_reader :geoip_keys_map
 
   def initialize
