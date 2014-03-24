@@ -66,6 +66,24 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal nil, emits[1][2]['geoip_city']
   end
 
+  def test_emit_tag_option
+    d1 = create_driver(%[
+      geoip_lookup_key  host
+      enable_key_city   geoip_city
+      remove_tag_prefix input.
+      tag               geoip.${tag}
+    ], 'input.access')
+    d1.run do
+      d1.emit({'host' => '66.102.3.80', 'message' => 'valid ip'})
+      d1.emit({'message' => 'missing field'})
+    end
+    emits = d1.emits
+    assert_equal 2, emits.length
+    assert_equal 'geoip.access', emits[0][0] # tag
+    assert_equal 'Mountain View', emits[0][2]['geoip_city']
+    assert_equal nil, emits[1][2]['geoip_city']
+  end
+
   def test_emit_nested_attr
     d1 = create_driver(%[
       geoip_lookup_key  host.ip
