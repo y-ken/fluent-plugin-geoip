@@ -3,7 +3,7 @@ require 'fluent/mixin/rewrite_tag_name'
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
 
-  GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
+  GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region lonlat)
   config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
   config_param :geoip_lookup_key, :string, :default => 'host'
   config_param :tag, :string, :default => nil
@@ -88,7 +88,11 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     return record if results.all? {|result| result == nil }
     @geoip_keys_map.each do |geoip_key,record_keys|
       record_keys.each_with_index {|record_key, idx|
-        record.store(record_key, results[idx][geoip_key.to_sym])
+        if geoip_key == 'lonlat'
+          record.store(record_key, [results[idx][:longitude], results[idx][:latitude]])
+        else
+          record.store(record_key, results[idx][geoip_key.to_sym])
+        end
       }
     end
     return record

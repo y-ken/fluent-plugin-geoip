@@ -160,4 +160,30 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal nil, emits[1][2]['to_city']
   end
 
+  def test_emit_lonlat
+    d1 = create_driver(%[
+      geoip_lookup_key     host
+      enable_key_latitude  geoip_lat
+      enable_key_longitude geoip_lon
+      enable_key_lonlat    geoip_lonlat
+      remove_tag_prefix    input.
+      add_tag_prefix       geoip.
+    ], 'input.access')
+    d1.run do
+      d1.emit({'host' => '66.102.3.80', 'message' => 'valid ip'})
+      d1.emit({'message' => 'missing field'})
+    end
+    emits = d1.emits
+    assert_equal 2, emits.length
+    p emits[0]
+    assert_equal 'geoip.access', emits[0][0] # tag
+    assert_equal 37.4192008972168, emits[0][2]['geoip_lat']
+    assert_equal -122.05740356445312, emits[0][2]['geoip_lon']
+    assert_equal [-122.05740356445312, 37.4192008972168], emits[0][2]['geoip_lonlat']
+    p emits[1]
+    assert_equal nil, emits[1][2]['geoip_lat']
+    assert_equal nil, emits[1][2]['geoip_lon']
+    assert_equal nil, emits[1][2]['geoip_lonlat']
+  end
+
 end
