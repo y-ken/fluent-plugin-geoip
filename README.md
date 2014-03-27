@@ -2,8 +2,8 @@
 
 Fluentd Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
 
-fluent-plugin-geoip has bundled cost-free [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.  
-Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.  
+fluent-plugin-geoip has bundled cost-free [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.<br />
+Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.
 
 The accuracy details for GeoLite City (free) and GeoIP City (purchased) has described at the page below.
 
@@ -40,30 +40,35 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 <match access.apache>
   type geoip
 
-  # Specify geoip lookup field (default: host)
+  # Specify one or more geoip lookup field which has ip address (default: host)
   # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
-  geoip_lookup_key         host
+  geoip_lookup_key  host
 
   # Specify geoip database (using bundled GeoLiteCity databse by default)
-  geoip_database           'data/GeoLiteCity.dat'
+  geoip_database    'data/GeoLiteCity.dat'
 
-  # Set adding field of geolocate results (more than one settings are required.)
-  enable_key_city          geoip_city
-  enable_key_latitude      geoip_lat
-  enable_key_longitude     geoip_lon
-  enable_key_country_code3 geoip_country3
-  enable_key_country_code  geoip_country
-  enable_key_country_name  geoip_country_name
-  enable_key_dma_code      geoip_dma
-  enable_key_area_code     geoip_area
-  enable_key_region        geoip_region
+  # Set adding field with placeholder (more than one settings are required.)
+  <record>
+    city            ${city['host']}
+    latitude        ${latitude['host']}
+    longitude       ${longitude['host']}
+    country_code3   ${country_code3['host']}
+    country         ${country['host']}
+    country_name    ${country_name['host']}
+    dma             ${dma['host']}
+    area            ${area['host']}
+    region          ${region['host']}
+  </record>
 
   # Settings for tag
-  remove_tag_prefix        access.
-  tag                      geoip.
+  remove_tag_prefix access.
+  tag               geoip.${tag}
 
-  # Buffering time (default: 0s)
-  flush_interval           1s
+  # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
+  log_level         info
+
+  # Set buffering time (default: 0s)
+  flush_interval    1s
 </match>
 ```
 
@@ -72,20 +77,37 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 ```xml
 <match access.apache>
   type geoip
+  geoip_lookup_key  user1_host, user2_host
+  user1_city        ${city['user1_host']}
+  user2_city        ${city['user2_host']}
+  remove_tag_prefix access.
+  tag               geoip.${tag}
+</match>
+```
 
-  # Set ip address key to geolocate
-  geoip_lookup_key        user1_host, user2_host
+#### Advanced config samples
 
-  # Set adding field of geolocate results
-  enable_key_city         user1_city, user2_city
-  enable_key_country_name user1_country, user2_country
+It is a sample to get friendly geo point recdords for elasticsearch with Yajl (JSON) parser.
 
-  # Setting for tag
-  remove_tag_prefix       access.
-  add_tag_prefix          geoip.
-
-  # Buffering time
-  flush_interval          1s
+```
+<match input.access>
+  type                   geoip
+  geoip_lookup_key       host
+  <record>
+    # lat lon as properties
+    # ex. {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
+    location_properties  { "lat":${latitude['host']}, "lon":${longitude['host']}}
+  
+    # lat lon as string
+    # ex. 37.4192008972168,-122.05740356445312
+    location_string      ${latitude['host']},${longitude['host']}
+    
+    # lat lon as array (it is useful for Kibana's bettermap.)
+    # ex. [-122.05740356445312, 37.4192008972168]
+    location_array       [${longitude['host']},${latitude['host']}]
+  </record>
+  remove_tag_prefix      access.
+  tag                    geoip.${tag}
 </match>
 ```
 
@@ -104,14 +126,15 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
     type stdout
   </store>
   <store>
-    type geoip
-    geoip_lookup_key     host
-    enable_key_city      city
-    enable_key_latitude  lat
-    enable_key_longitude lon
-    remove_tag_prefix    test.
-    add_tag_prefix       debug.
-    flush_interval       5s
+    type    geoip
+    geoip_lookup_key  host
+    <record>
+      city  ${city['host']}
+      lat   ${latitude['host']}
+      lon   ${longitude['host']}
+    </record>
+    remove_tag_prefix test.
+    tag     debug.${tag}
   </store>
 </match>
 
@@ -132,23 +155,24 @@ $ tail /var/log/td-agent/td-agent.log
 2013-08-04 16:21:32 +0900 debug.geoip: {"host":"66.102.9.80","message":"test","city":"Mountain View","lat":37.4192008972168,"lon":-122.05740356445312}
 ```
 
-For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.  
+For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.<br />
 http://dev.maxmind.com/geoip/legacy/csv/
 
+## Placeholders
+
+Provides these placeholders for adding field of geolocate results.
+
+* ${city}
+* ${latitude}
+* ${longitude}
+* ${country_code3}
+* ${country_code}
+* ${country_name}
+* ${dma_code}
+* ${area_code}
+* ${region}
+
 ## Parameters
-
-* `enable_key_*` (example: enable_key_city)
-  * city
-  * latitude
-  * longitude
-  * country_code3
-  * country_code
-  * country_name
-  * dma_code
-  * area_code
-  * region
-
-Set adding field of geolocate results (more than one settings are required.)
 
 * `include_tag_key` (default: false)
 * `tag_key`
@@ -173,19 +197,19 @@ Set buffering time to execute bulk lookup geoip.
 
 ## Articles
 
-* [IPアドレスを元に位置情報をリアルタイムに付与する fluent-plugin-geoip v0.0.1をリリースしました #fluentd - Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released)  
+* [IPアドレスを元に位置情報をリアルタイムに付与する fluent-plugin-geoip v0.0.1をリリースしました #fluentd - Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released)<br />
 http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-has-released
 
-* [初の安定版 fluent-plugin-geoip v0.0.3 をリリースしました #fluentd- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.3)  
+* [初の安定版 fluent-plugin-geoip v0.0.3 をリリースしました #fluentd- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.3)<br />
 http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.3
 
-* [fluent-plugin-geoip v0.0.4 をリリースしました。ElasticSearch＋Kibanaの世界地図に位置情報をプロットするために必要なFluentdの設定サンプルも紹介します- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4)  
+* [fluent-plugin-geoip v0.0.4 をリリースしました。ElasticSearch＋Kibanaの世界地図に位置情報をプロットするために必要なFluentdの設定サンプルも紹介します- Y-Ken Studio](http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4)<br />
 http://y-ken.hatenablog.com/entry/fluent-plugin-geoip-v0.0.4
 
-* [Released GeoIP plugin to work together with ElasticSearch + Kibana v3](https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion)  
+* [Released GeoIP plugin to work together with ElasticSearch + Kibana v3](https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion)<br />
 https://groups.google.com/d/topic/fluentd/OVIcH_SKBwM/discussion
 
-* [Fluentd、Amazon RedshiftとTableauを用いたカジュアルなデータ可視化 | SmartNews開発者ブログ](http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-redshift-and-tableau/)  
+* [Fluentd、Amazon RedshiftとTableauを用いたカジュアルなデータ可視化 | SmartNews開発者ブログ](http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-redshift-and-tableau/)<br />
 http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-redshift-and-tableau/
 
 ## TODO
@@ -202,7 +226,7 @@ Pull requests are very welcome!!
 
 ## Copyright
 
-Copyright (c) 2013- Kentaro Yoshida (@yoshi_ken)
+Copyright (c) 2013- Kentaro Yoshida ([@yoshi_ken](https://twitter.com/yoshi_ken))
 
 ## License
 
