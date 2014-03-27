@@ -164,6 +164,8 @@ class GeoipOutputTest < Test::Unit::TestCase
       <record>
         from_city       ${city['from.ip']}
         from_country    ${country_name['from.ip']}
+        latitude        ${latitude['from.ip']}
+        longitude       ${longitude['from.ip']}
         location_string ${latitude['from.ip']},${longitude['from.ip']}
         location_array  [${longitude['from.ip']},${latitude['from.ip']}]
         location_nest   { "lat" : ${latitude['from.ip']}, "lon" : ${longitude['from.ip']}}
@@ -181,6 +183,8 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal 'geoip.access', emits[0][0] # tag
     assert_equal 'Mountain View', emits[0][2]['from_city']
     assert_equal 'United States', emits[0][2]['from_country']
+    assert_equal 37.4192008972168, emits[0][2]['latitude']
+    assert_equal -122.05740356445312, emits[0][2]['longitude']
     assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['location_string']
     assert_equal [-122.05740356445312, 37.4192008972168], emits[0][2]['location_array']
     location_nest = {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }

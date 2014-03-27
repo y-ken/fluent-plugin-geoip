@@ -101,7 +101,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
       rewrited = value.gsub(/\$\{[^\}]+?\}/, placeholder)
       if rewrited.empty? or rewrited == value.gsub(/\$\{[^\}]+?\}/, '')
         rewrited = nil
-      elsif rewrited.match(/^[\[\{]/) 
+      elsif rewrited.match(/(^[\[\{]|^[\d\.\-]+$)/) 
         rewrited = parse_json(rewrited)
       end
       record.store(record_key, rewrited)
