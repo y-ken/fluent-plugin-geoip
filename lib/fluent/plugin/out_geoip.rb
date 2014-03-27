@@ -18,6 +18,12 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   config_param :hostname_command, :string, :default => 'hostname'
 
   config_param :flush_interval, :time, :default => 0
+  config_param :log_level, :string, :default => 'warn'
+
+  # Define `log` method for v0.10.42 or earlier
+  unless method_defined?(:log)
+    define_method("log") { $log }
+  end
 
   def initialize
     require 'geoip'
@@ -44,8 +50,8 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
       end
     end
     if conf.keys.select{|k| k =~ /^enable_key_/}.size > 0
-      $log.warn "geoip: 'enable_key_*' config format is obsoleted. use <record></record> directive for now."
-      $log.warn "geoip: for further details referable to https://github.com/y-ken/fluent-plugin-geoip"
+      log.warn "geoip: 'enable_key_*' config format is obsoleted. use <record></record> directive for now."
+      log.warn "geoip: for further details referable to https://github.com/y-ken/fluent-plugin-geoip"
     end
 
     # <record></record> directive
@@ -107,7 +113,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     begin
       return Yajl::Parser.parse(message)
     rescue Yajl::ParseError => e
-      $log.info "geoip: failed to parse '#{message}' as json.", :error_class => e.class, :error => e.message
+      log.info "geoip: failed to parse '#{message}' as json.", :error_class => e.class, :error => e.message
       return nil
     end
   end
