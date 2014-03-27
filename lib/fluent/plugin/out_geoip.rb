@@ -3,7 +3,9 @@ require 'fluent/mixin/rewrite_tag_name'
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
 
+  REGEXP_PLACEHOLDER = /\$\{(?<geoip_key>-?[^\[]+)\['(?<record_key>-?[^']+)'\]\}/
   GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
+
   config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
   config_param :geoip_lookup_key, :string, :default => 'host'
   config_param :tag, :string, :default => nil
@@ -17,33 +19,48 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
 
   config_param :flush_interval, :time, :default => 0
 
-  attr_reader :geoip_keys_map
-
   def initialize
     require 'geoip'
+    require 'yajl'
+
     super
   end
 
   def configure(conf)
     super
 
-    @geoip_keys_map = Hash.new
+    @map = {}
+    @geoip_lookup_key = @geoip_lookup_key.split(/\s*,\s*/)
+
+    # enable_key_* format (legacy format)
     conf.keys.select{|k| k =~ /^enable_key_/}.each do |key|
-      geoip_key_name = key.sub('enable_key_','')
-      raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key_name}" unless GEOIP_KEYS.include?(geoip_key_name)
-      @geoip_keys_map.store(geoip_key_name, conf[key].split(/\s*,\s*/))
+      geoip_key = key.sub('enable_key_','')
+      raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
+      @geoip_lookup_key.zip(conf[key].split(/\s*,\s*/)).each do |lookup_field,record_key|
+        if record_key.nil?
+          raise Fluent::ConfigError, "geoip: missing value found at '#{key} #{lookup_field}'"
+        end
+        @map.store(record_key, "${#{geoip_key}['#{lookup_field}']}")
+      end
+    end
+    if conf.keys.select{|k| k =~ /^enable_key_/}.size > 0
+      $log.warn "geoip: 'enable_key_*' config format is obsoleted. use <record></record> directive for now."
+      $log.warn "geoip: for further details referable to https://github.com/y-ken/fluent-plugin-geoip"
     end
 
-    @geoip_lookup_key = @geoip_lookup_key.split(/\s*,\s*/).map {|lookupkey|
-      lookupkey.split(".")
-    }
-    if @geoip_lookup_key.size > 1
-      @geoip_keys_map.each{|name, key|
-        if key.size != @geoip_lookup_key.size
-          raise Fluent::ConfigError, "geoip: lookup key length is not match #{name}"
-        end
+    # <record></record> directive
+    conf.elements.select { |element| element.name == 'record' }.each { |element|
+      element.each_pair { |k, v|
+        element.has_key?(k) # to suppress unread configuration warning
+        @map[k] = v
       }
+    }
+    @placeholder_keys = @map.values.join.scan(/(\$\{[^}]+\})/).map{ |placeholder| placeholder[0] }.uniq
+    @placeholder_keys.each do |key|
+      geoip_key = key.match(REGEXP_PLACEHOLDER)[:geoip_key]
+      raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
     end
+    @placeholder_expander = PlaceholderExpander.new
 
     if ( !@tag && !@remove_tag_prefix && !@remove_tag_suffix && !@add_tag_prefix && !@add_tag_suffix )
       raise Fluent::ConfigError, "geoip: required at least one option of 'tag', 'remove_tag_prefix', 'remove_tag_suffix', 'add_tag_prefix', 'add_tag_suffix'."
@@ -70,27 +87,61 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     end
   end
 
+
+  private
+  def add_geoip_field(record)
+    placeholder = create_placeholder(geolocate(get_address(record)))
+    @map.each do |record_key, value|
+      rewrited = value.gsub(/\$\{[^\}]+?\}/, placeholder)
+      if rewrited.empty? or rewrited == value.gsub(/\$\{[^\}]+?\}/, '')
+        rewrited = nil
+      elsif rewrited.match(/^[\[\{]/) 
+        rewrited = parse_json(rewrited)
+      end
+      record.store(record_key, rewrited)
+    end
+    return record
+  end
+
+  def parse_json(message)
+    begin
+      return Yajl::Parser.parse(message)
+    rescue Yajl::ParseError => e
+      $log.info "geoip: failed to parse '#{message}' as json.", :error_class => e.class, :error => e.message
+      return nil
+    end
+  end
+
   def get_address(record)
-    @geoip_lookup_key.map {|key|
+    address = {}
+    @geoip_lookup_key.each do |field|
+      key = field.split('.')
       obj = record
       key.each {|k|
         break obj = nil if not obj.has_key?(k)
         obj = obj[k]
       }
-      obj
-    }
+      address.store(field, obj)
+    end
+    return address
   end
 
-  def add_geoip_field(record)
-    addresses = get_address(record)
-    return record if addresses.all? {|address| address == nil }
-    results = addresses.map {|address| @geoip.look_up(address) }
-    return record if results.all? {|result| result == nil }
-    @geoip_keys_map.each do |geoip_key,record_keys|
-      record_keys.each_with_index {|record_key, idx|
-        record.store(record_key, results[idx][geoip_key.to_sym])
-      }
+  def geolocate(addresses)
+    geodata = {}
+    addresses.each do |field, ip|
+      geo = ip.nil? ? nil : @geoip.look_up(ip)
+      geodata.store(field, geo)
     end
-    return record
+    return geodata
+  end
+
+  def create_placeholder(geodata)
+    placeholder = {}
+    @placeholder_keys.each do |placeholder_key|
+      position = placeholder_key.match(REGEXP_PLACEHOLDER)
+      next if position.nil? or geodata[position[:record_key]].nil?
+      placeholder.store(placeholder_key, geodata[position[:record_key]][position[:geoip_key].to_sym])
+    end
+    return placeholder
   end
 end
