@@ -3,7 +3,7 @@ require 'fluent/mixin/rewrite_tag_name'
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
 
-  REGEXP_PLACEHOLDER = /\$\{(?<geoip_key>-?[^\[]+)\['(?<record_key>-?[^']+)'\]\}/
+  REGEXP_PLACEHOLDER = /^\$\{(?<geoip_key>-?[^\[]+)\['(?<record_key>-?[^']+)'\]\}$/
   GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
 
   config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
@@ -98,11 +98,13 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   def add_geoip_field(record)
     placeholder = create_placeholder(geolocate(get_address(record)))
     @map.each do |record_key, value|
-      rewrited = value.gsub(/\$\{[^\}]+?\}/, placeholder)
-      if rewrited.empty? or rewrited == value.gsub(/\$\{[^\}]+?\}/, '')
-        rewrited = nil
-      elsif rewrited.match(/(^[\[\{]|^[\d\.\-]+$)/) 
-        rewrited = parse_json(rewrited)
+      if value.match(REGEXP_PLACEHOLDER)
+        rewrited = placeholder[value]
+      else
+        rewrited = value.gsub(/\$\{[^\}]+?\}/, placeholder)
+        if rewrited.match(/(^[\[\{]|^[\d\.\-]+$)/) 
+          rewrited = parse_json(rewrited)
+        end
       end
       record.store(record_key, rewrited)
     end
