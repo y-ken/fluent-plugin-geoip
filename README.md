@@ -164,15 +164,15 @@ http://dev.maxmind.com/geoip/legacy/csv/
 
 Provides these placeholders for adding field of geolocate results.
 
-* ${city}
-* ${latitude}
-* ${longitude}
-* ${country_code3}
-* ${country_code}
-* ${country_name}
-* ${dma_code}
-* ${area_code}
-* ${region}
+* ${city[lookup_field]}
+* ${latitude[lookup_field]}
+* ${longitude[lookup_field]}
+* ${country_code3[lookup_field]}
+* ${country_code[lookup_field]}
+* ${country_name[lookup_field]}
+* ${dma_code[lookup_field]}
+* ${area_code[lookup_field]}
+* ${region[lookup_field]}
 
 ## Parameters
 
