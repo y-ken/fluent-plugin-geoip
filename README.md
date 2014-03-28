@@ -78,8 +78,10 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 <match access.apache>
   type geoip
   geoip_lookup_key  user1_host, user2_host
-  user1_city        ${city['user1_host']}
-  user2_city        ${city['user2_host']}
+  <record>
+    user1_city      ${city['user1_host']}
+    user2_city      ${city['user2_host']}
+  </record>
   remove_tag_prefix access.
   tag               geoip.${tag}
 </match>
@@ -99,7 +101,7 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
     location_properties  { "lat":${latitude['host']}, "lon":${longitude['host']}}
   
     # lat lon as string
-    # ex. 37.4192008972168,-122.05740356445312
+    # ex. "37.4192008972168,-122.05740356445312"
     location_string      ${latitude['host']},${longitude['host']}
     
     # lat lon as array (it is useful for Kibana's bettermap.)
