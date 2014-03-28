@@ -3,7 +3,9 @@ require 'fluent/mixin/rewrite_tag_name'
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
 
+  REGEXP_JSON = /(^[\[\{].+[\]\}]$|^[\d\.\-]+$)/
   REGEXP_PLACEHOLDER = /^\$\{(?<geoip_key>-?[^\[]+)\['(?<record_key>-?[^']+)'\]\}$/
+  REGEXP_PLACEHOLDER_SCAN = /(\$\{[^\}]+?\})/
   GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
 
   config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
@@ -59,9 +61,18 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
       element.each_pair { |k, v|
         element.has_key?(k) # to suppress unread configuration warning
         @map[k] = v
+        validate_json = Proc.new { 
+          begin
+            dummy_text = '12345'
+            Yajl::Parser.parse(v.gsub(REGEXP_PLACEHOLDER_SCAN, dummy_text)) if v.match(REGEXP_JSON)
+          rescue Yajl::ParseError => e
+            raise Fluent::ConfigError, "geoip: failed to parse '#{v}' as json."
+          end
+        }
+        validate_json.call
       }
     }
-    @placeholder_keys = @map.values.join.scan(/(\$\{[^}]+\})/).map{ |placeholder| placeholder[0] }.uniq
+    @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{ |placeholder| placeholder[0] }.uniq
     @placeholder_keys.each do |key|
       geoip_key = key.match(REGEXP_PLACEHOLDER)[:geoip_key]
       raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
@@ -93,7 +104,6 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     end
   end
 
-
   private
   def add_geoip_field(record)
     placeholder = create_placeholder(geolocate(get_address(record)))
@@ -101,8 +111,8 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
       if value.match(REGEXP_PLACEHOLDER)
         rewrited = placeholder[value]
       else
-        rewrited = value.gsub(/\$\{[^\}]+?\}/, placeholder)
-        if rewrited.match(/(^[\[\{]|^[\d\.\-]+$)/) 
+        rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN, placeholder)
+        if rewrited.match(REGEXP_JSON) 
           rewrited = parse_json(rewrited)
         end
       end

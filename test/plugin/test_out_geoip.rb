@@ -9,7 +9,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     geoip_lookup_key  host
     enable_key_city   geoip_city
     remove_tag_prefix input.
-    add_tag_prefix    geoip.
+    tag               geoip.${tag}
   ]
 
   def create_driver(conf=CONFIG,tag='test')
@@ -24,9 +24,9 @@ class GeoipOutputTest < Test::Unit::TestCase
       d = create_driver('enable_key_cities')
     }
     d = create_driver %[
-      enable_key_city geoip_city
+      enable_key_city   geoip_city
       remove_tag_prefix input.
-      add_tag_prefix    geoip.
+      tag               geoip.${tag}
     ]
     assert_equal 'geoip_city', d.instance.config['enable_key_city']
 
@@ -35,7 +35,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       geoip_lookup_key  from.ip, to.ip
       enable_key_city   from_city, to_city
       remove_tag_prefix input.
-      add_tag_prefix    geoip.
+      tag               geoip.${tag}
     ]
     assert_equal 'from_city, to_city', d.instance.config['enable_key_city']
 
@@ -46,7 +46,18 @@ class GeoipOutputTest < Test::Unit::TestCase
         enable_key_city   from_city
         enable_key_region from_region
         remove_tag_prefix input.
-        add_tag_prefix    geoip.
+        tag               geoip.${tag}
+      ]
+    }
+    # invalid json structure
+    assert_raise(Fluent::ConfigError) {
+      d = create_driver %[
+        geoip_lookup_key  host
+        <record>
+          invalid_json    {"foo" => 123}
+        </record>
+        remove_tag_prefix input.
+        tag               geoip.${tag}
       ]
     }
   end
@@ -178,6 +189,10 @@ class GeoipOutputTest < Test::Unit::TestCase
         location_string ${latitude['from.ip']},${longitude['from.ip']}
         location_array  [${longitude['from.ip']},${latitude['from.ip']}]
         location_nest   { "lat" : ${latitude['from.ip']}, "lon" : ${longitude['from.ip']}}
+        unknown_city    ${city['unknown_key']}
+        undefined       ${city['undefined']}
+        broken_array1   [${longitude['from.ip']},${latitude['undefined']}]
+        broken_array2   [${longitude['undefined']},${latitude['undefined']}]
       </record>
       remove_tag_prefix input.
       tag               geoip.${tag}
@@ -197,7 +212,11 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal [-122.05740356445312, 37.4192008972168], emits[0][2]['location_array']
     location_nest = {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
     assert_equal location_nest, emits[0][2]['location_nest']
+    assert_equal nil, emits[0][2]['unknown_city']
     assert_equal nil, emits[0][2]['undefined']
+    assert_equal nil, emits[0][2]['broken_array1']
+    assert_equal nil, emits[0][2]['broken_array2']
+
     assert_equal nil, emits[1][2]['from_city']
     assert_equal nil, emits[1][2]['from_country']
     assert_equal nil, emits[1][2]['latitude']
@@ -205,6 +224,10 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal ',', emits[1][2]['location_string']
     assert_equal nil, emits[1][2]['location_array']
     assert_equal nil, emits[1][2]['location_nest']
+    assert_equal nil, emits[1][2]['unknown_city']
+    assert_equal nil, emits[1][2]['undefined']
+    assert_equal nil, emits[1][2]['broken_array1']
+    assert_equal nil, emits[1][2]['broken_array2']
   end
 
   def test_emit_record_directive_multiple_record
@@ -215,6 +238,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         to_city         ${city['to.ip']}
         from_country    ${country_name['from.ip']}
         to_country      ${country_name['to.ip']}
+        country_array   ["${country_name['from.ip']}","${country_name['to.ip']}"]
       </record>
       remove_tag_prefix input.
       tag               geoip.${tag}
@@ -230,46 +254,10 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal 'United States', emits[0][2]['from_country']
     assert_equal 'Musashino', emits[0][2]['to_city']
     assert_equal 'Japan', emits[0][2]['to_country']
+    assert_equal ['United States','Japan'], emits[0][2]['country_array']
     assert_equal nil, emits[1][2]['from_city']
     assert_equal nil, emits[1][2]['to_city']
     assert_equal nil, emits[1][2]['from_country']
     assert_equal nil, emits[1][2]['to_country']
-  end
-
-  def test_emit_record_directive_aggressive
-    d1 = create_driver(%[
-      geoip_lookup_key  from.ip
-      <record>
-        city            ${city['from.ip']}
-        latitude        ${latitude['from.ip']}
-        longitude       ${longitude['from.ip']}
-        unknown_city    ${city['unknown_key']}
-        undefined       ${city['undefined']}
-        broken_array1   [${longitude['from.ip']},${latitude['undefined']}]
-        broken_array2   [${longitude['undefined']},${latitude['undefined']}]
-      </record>
-      remove_tag_prefix input.
-      tag               geoip.${tag}
-    ], 'input.access')
-    d1.run do
-      d1.emit({'from' => {'ip' => '66.102.3.80'}})
-      d1.emit({'message' => 'missing field'})
-    end
-    emits = d1.emits
-    assert_equal 2, emits.length
-    assert_equal 'geoip.access', emits[0][0] # tag
-    assert_equal 'Mountain View', emits[0][2]['city']
-    assert_equal 37.4192008972168, emits[0][2]['latitude']
-    assert_equal -122.05740356445312, emits[0][2]['longitude']
-    assert_equal nil, emits[0][2]['unknown_city']
-    assert_equal nil, emits[0][2]['undefined']
-    assert_equal nil, emits[0][2]['broken_array1']
-    assert_equal nil, emits[0][2]['broken_array2']
-
-    assert_equal nil, emits[1][2]['city']
-    assert_equal nil, emits[1][2]['unknown_city']
-    assert_equal nil, emits[1][2]['undefined']
-    assert_equal nil, emits[1][2]['broken_array1']
-    assert_equal nil, emits[1][2]['broken_array2']
   end
 end
