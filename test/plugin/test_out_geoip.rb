@@ -49,12 +49,23 @@ class GeoipOutputTest < Test::Unit::TestCase
         tag               geoip.${tag}
       ]
     }
+
     # invalid json structure
     assert_raise(Fluent::ConfigError) {
       d = create_driver %[
         geoip_lookup_key  host
         <record>
           invalid_json    {"foo" => 123}
+        </record>
+        remove_tag_prefix input.
+        tag               geoip.${tag}
+      ]
+    }
+    assert_raise(Fluent::ConfigError) {
+      d = create_driver %[
+        geoip_lookup_key  host
+        <record>
+          invalid_json    {"foo" : string, "bar" : 123}
         </record>
         remove_tag_prefix input.
         tag               geoip.${tag}
