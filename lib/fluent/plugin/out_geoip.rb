@@ -4,7 +4,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
 
   REGEXP_JSON = /(^[\[\{].+[\]\}]$|^[\d\.\-]+$)/
-  REGEXP_PLACEHOLDER = /^\$\{(?<geoip_key>-?[^\[]+)\['(?<record_key>-?[^']+)'\]\}$/
+  REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\['(?<record_key>-?[^']+)'\]\}$/
   REGEXP_PLACEHOLDER_SCAN = /(\$\{[^\}]+?\})/
   GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
 
@@ -74,7 +74,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     }
     @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{ |placeholder| placeholder[0] }.uniq
     @placeholder_keys.each do |key|
-      geoip_key = key.match(REGEXP_PLACEHOLDER)[:geoip_key]
+      geoip_key = key.match(REGEXP_PLACEHOLDER_SINGLE)[:geoip_key]
       raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
     end
     @placeholder_expander = PlaceholderExpander.new
@@ -108,13 +108,15 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   def add_geoip_field(record)
     placeholder = create_placeholder(geolocate(get_address(record)))
     @map.each do |record_key, value|
-      if value.match(REGEXP_PLACEHOLDER)
+      if value.match(REGEXP_PLACEHOLDER_SINGLE)
         rewrited = placeholder[value]
+      elsif value.match(REGEXP_JSON)
+        rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN) {|match|
+          Yajl::Encoder.encode(placeholder[match])
+        }
+        rewrited = parse_json(rewrited)
       else
         rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN, placeholder)
-        if rewrited.match(REGEXP_JSON) 
-          rewrited = parse_json(rewrited)
-        end
       end
       record.store(record_key, rewrited)
     end
@@ -156,7 +158,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   def create_placeholder(geodata)
     placeholder = {}
     @placeholder_keys.each do |placeholder_key|
-      position = placeholder_key.match(REGEXP_PLACEHOLDER)
+      position = placeholder_key.match(REGEXP_PLACEHOLDER_SINGLE)
       next if position.nil? or geodata[position[:record_key]].nil?
       placeholder.store(placeholder_key, geodata[position[:record_key]][position[:geoip_key].to_sym])
     end
