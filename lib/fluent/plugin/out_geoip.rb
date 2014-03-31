@@ -63,13 +63,13 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
         @map[k] = v
         validate_json = Proc.new { 
           begin
-            dummy_text = '12345'
-            Yajl::Parser.parse(v.gsub(REGEXP_PLACEHOLDER_SCAN, dummy_text)) if v.match(REGEXP_JSON)
+            dummy_text = Yajl::Encoder.encode('dummy_text')
+            Yajl::Parser.parse(v.gsub(REGEXP_PLACEHOLDER_SCAN, dummy_text))
           rescue Yajl::ParseError => e
             raise Fluent::ConfigError, "geoip: failed to parse '#{v}' as json."
           end
         }
-        validate_json.call
+        validate_json.call if v.match(REGEXP_JSON)
       }
     }
     @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{ |placeholder| placeholder[0] }.uniq
