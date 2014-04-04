@@ -53,10 +53,10 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
     latitude        ${latitude['host']}
     longitude       ${longitude['host']}
     country_code3   ${country_code3['host']}
-    country         ${country['host']}
+    country         ${country_code['host']}
     country_name    ${country_name['host']}
-    dma             ${dma['host']}
-    area            ${area['host']}
+    dma             ${dma_code['host']}
+    area            ${area_code['host']}
     region          ${region['host']}
   </record>
 
