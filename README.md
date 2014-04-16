@@ -44,8 +44,8 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
   geoip_lookup_key  host
 
-  # Specify geoip database (using bundled GeoLiteCity databse by default)
-  geoip_database    'data/GeoLiteCity.dat'
+  # Specify optional geoip database (using bundled GeoLiteCity databse by default)
+  geoip_database    '/path/to/your/GeoIPCity.dat'
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
