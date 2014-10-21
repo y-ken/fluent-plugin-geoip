@@ -135,6 +135,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   def get_address(record)
     address = {}
     @geoip_lookup_key.each do |field|
+      address.store(field, record[field]); next if not record[field].nil?
       key = field.split('.')
       obj = record
       key.each {|k|

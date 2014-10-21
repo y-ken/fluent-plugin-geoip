@@ -123,6 +123,26 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal 'Mountain View', emits[0][2]['geoip_city']
   end
 
+  def test_emit_with_dot_key
+    d1 = create_driver(%[
+      geoip_lookup_key  ip.origin, ip.dest
+      <record>
+        origin_country  ${country_code['ip.origin']}
+        dest_country    ${country_code['ip.dest']}
+      </record>
+      remove_tag_prefix input.
+      tag               geoip.${tag}
+    ], 'input.access')
+    d1.run do
+      d1.emit({'ip.origin' => '66.102.3.80', 'ip.dest' => '8.8.8.8'})
+    end
+    emits = d1.emits
+    assert_equal 1, emits.length
+    assert_equal 'geoip.access', emits[0][0] # tag
+    assert_equal 'US', emits[0][2]['origin_country']
+    assert_equal 'US', emits[0][2]['dest_country']
+  end
+
   def test_emit_nested_attr
     d1 = create_driver(%[
       geoip_lookup_key  host.ip
