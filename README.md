@@ -53,6 +53,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
     latitude        ${latitude['host']}
     longitude       ${longitude['host']}
     country_code3   ${country_code3['host']}
+    country_code2   ${country_code2['host']}
     country         ${country_code['host']}
     country_name    ${country_name['host']}
     dma             ${dma_code['host']}
@@ -168,6 +169,7 @@ Provides these placeholders for adding field of geolocate results.
 * ${latitude[lookup_field]}
 * ${longitude[lookup_field]}
 * ${country_code3[lookup_field]}
+* ${country_code2[lookup_field]}
 * ${country_code[lookup_field]}
 * ${country_name[lookup_field]}
 * ${dma_code[lookup_field]}
