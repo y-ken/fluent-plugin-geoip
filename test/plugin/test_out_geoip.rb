@@ -184,14 +184,14 @@ class GeoipOutputTest < Test::Unit::TestCase
       add_tag_prefix    geoip.
     ], 'input.access')
     d1.run do
-      d1.emit({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.95.42'}})
+      d1.emit({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
       d1.emit({'message' => 'missing field'})
     end
     emits = d1.emits
     assert_equal 2, emits.length
     assert_equal 'geoip.access', emits[0][0] # tag
     assert_equal 'Mountain View', emits[0][2]['from_city']
-    assert_equal 'Musashino', emits[0][2]['to_city']
+    assert_equal 'Tokorozawa', emits[0][2]['to_city']
     assert_equal nil, emits[1][2]['from_city']
     assert_equal nil, emits[1][2]['to_city']
   end
@@ -205,7 +205,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       add_tag_prefix    geoip.
     ], 'input.access')
     d1.run do
-      d1.emit({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.95.42'}})
+      d1.emit({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
       d1.emit({'from' => {'ip' => '66.102.3.80'}})
       d1.emit({'message' => 'missing field'})
     end
@@ -214,7 +214,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal 'geoip.access', emits[0][0] # tag
     assert_equal 'Mountain View', emits[0][2]['from_city']
     assert_equal 'United States', emits[0][2]['from_country']
-    assert_equal 'Musashino', emits[0][2]['to_city']
+    assert_equal 'Tokorozawa', emits[0][2]['to_city']
     assert_equal 'Japan', emits[0][2]['to_country']
 
     assert_equal 'Mountain View', emits[1][2]['from_city']
@@ -307,7 +307,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       tag               geoip.${tag}
     ], 'input.access')
     d1.run do
-      d1.emit({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.95.42'}})
+      d1.emit({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
       d1.emit({'message' => 'missing field'})
     end
     emits = d1.emits
@@ -316,7 +316,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal 'geoip.access', emits[0][0] # tag
     assert_equal 'Mountain View', emits[0][2]['from_city']
     assert_equal 'United States', emits[0][2]['from_country']
-    assert_equal 'Musashino', emits[0][2]['to_city']
+    assert_equal 'Tokorozawa', emits[0][2]['to_city']
     assert_equal 'Japan', emits[0][2]['to_country']
     assert_equal ['United States','Japan'], emits[0][2]['string_array']
 
