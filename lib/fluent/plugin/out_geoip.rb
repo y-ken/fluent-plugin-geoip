@@ -3,8 +3,7 @@ require 'fluent/mixin/rewrite_tag_name'
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
 
-  REGEXP_JSON = /(^[\[\{].+[\]\}]$|^[\d\.\-]+$)/
-  REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\['(?<record_key>-?[^']+)'\]\}$/
+  REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\[['"](?<record_key>-?[^'"]+)['"]\]\}$/
   REGEXP_PLACEHOLDER_SCAN = /(\$\{[^\}]+?\})/
   GEOIP_KEYS = %w(city latitude longitude country_code3 country_code2 country_code country_name dma_code area_code region)
 
@@ -60,6 +59,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     conf.elements.select { |element| element.name == 'record' }.each { |element|
       element.each_pair { |k, v|
         element.has_key?(k) # to suppress unread configuration warning
+        v = v[1..v.size-2] if quoted_json?(v)
         @map[k] = v
         validate_json = Proc.new { 
           begin
@@ -69,7 +69,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
             raise Fluent::ConfigError, "geoip: failed to parse '#{v}' as json."
           end
         }
-        validate_json.call if v.match(REGEXP_JSON)
+        validate_json.call if json?(v.tr('\'"\\', ''))
       }
     }
     @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{ |placeholder| placeholder[0] }.uniq
@@ -105,12 +105,31 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   end
 
   private
+
+  def json?(text)
+    text.match(/^\[.+\]$/) || text.match(/^\{.+\}$/) || text.match(/^[\d\.\-]+$/)
+  end
+
+  def quoted_json?(text)
+    # to improbe compatibility with fluentd v1-config
+    trim_quote = text[1..text.size-2]
+    text.match(/(^'.+'$|^".+"$)/) && (json_array_block?(trim_quote) || json_hash_block?(trim_quote))
+  end
+
+  def json_array_block?(text)
+    text.match(/^\[[^\{]*?\{.+\}[^\}]*?\]$/)
+  end
+
+  def json_hash_block?(text)
+    text.match(/^\{[^\{]*?\{.+\}[^\}]*?\}$/)
+  end
+
   def add_geoip_field(record)
     placeholder = create_placeholder(geolocate(get_address(record)))
     @map.each do |record_key, value|
       if value.match(REGEXP_PLACEHOLDER_SINGLE)
         rewrited = placeholder[value]
-      elsif value.match(REGEXP_JSON)
+      elsif json?(value)
         rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN) {|match|
           Yajl::Encoder.encode(placeholder[match])
         }
