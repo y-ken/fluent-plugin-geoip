@@ -93,7 +93,7 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
 It is a sample to get friendly geo point recdords for elasticsearch with Yajl (JSON) parser.
 
 ```
-<match input.access>
+<match access.apache>
   type                   geoip
   geoip_lookup_key       host
   <record>
