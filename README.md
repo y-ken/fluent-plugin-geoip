@@ -45,20 +45,20 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   geoip_lookup_key  host
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
-  geoip_database    '/path/to/your/GeoIPCity.dat'
+  geoip_database    "/path/to/your/GeoIPCity.dat"
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
-    city            ${city['host']}
-    latitude        ${latitude['host']}
-    longitude       ${longitude['host']}
-    country_code3   ${country_code3['host']}
-    country_code2   ${country_code2['host']}
-    country         ${country_code['host']}
-    country_name    ${country_name['host']}
-    dma             ${dma_code['host']}
-    area            ${area_code['host']}
-    region          ${region['host']}
+    city            ${city["host"]}
+    latitude        ${latitude["host"]}
+    longitude       ${longitude["host"]}
+    country_code3   ${country_code3["host"]}
+    country_code2   ${country_code2["host"]}
+    country         ${country_code["host"]}
+    country_name    ${country_name["host"]}
+    dma             ${dma_code["host"]}
+    area            ${area_code["host"]}
+    region          ${region["host"]}
   </record>
 
   # Settings for tag
@@ -80,8 +80,8 @@ $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
   type geoip
   geoip_lookup_key  user1_host, user2_host
   <record>
-    user1_city      ${city['user1_host']}
-    user2_city      ${city['user2_host']}
+    user1_city      ${city["user1_host"]}
+    user2_city      ${city["user2_host"]}
   </record>
   remove_tag_prefix access.
   tag               geoip.${tag}
@@ -149,9 +149,9 @@ On the case of using td-agent2 (v1-config), it have to quote `{ ... }` or `[ ...
     type    geoip
     geoip_lookup_key  host
     <record>
-      city  ${city['host']}
-      lat   ${latitude['host']}
-      lon   ${longitude['host']}
+      city  ${city["host"]}
+      lat   ${latitude["host"]}
+      lon   ${longitude["host"]}
     </record>
     remove_tag_prefix test.
     tag     debug.${tag}
