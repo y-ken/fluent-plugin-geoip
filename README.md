@@ -24,7 +24,7 @@ $ sudo apt-get install libgeoip-dev
 
 ## Installation
 
-install with `gem` or `fluent-gem` command as:
+install with `gem` or td-agent provided command as:
 
 ```bash
 # for fluentd
@@ -32,6 +32,9 @@ $ gem install fluent-plugin-geoip
 
 # for td-agent
 $ sudo /usr/lib64/fluent/ruby/bin/fluent-gem install fluent-plugin-geoip
+
+# for td-agent2
+$ sudo td-agent-gem install fluent-plugin-geoip
 ```
 
 ## Usage
