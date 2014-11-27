@@ -4,7 +4,8 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
 
   REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\[['"](?<record_key>-?[^'"]+)['"]\]\}$/
-  REGEXP_PLACEHOLDER_SCAN = /(\$\{[^\}]+?\})/
+  REGEXP_PLACEHOLDER_SCAN = /['"]?(\$\{[^\}]+?\})['"]?/
+
   GEOIP_KEYS = %w(city latitude longitude country_code3 country_code2 country_code country_name dma_code area_code region)
 
   config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
@@ -59,7 +60,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     conf.elements.select { |element| element.name == 'record' }.each { |element|
       element.each_pair { |k, v|
         element.has_key?(k) # to suppress unread configuration warning
-        v = v[1..v.size-2] if quoted_json?(v)
+        v = v[1..v.size-2] if quoted_value?(v)
         @map[k] = v
         validate_json = Proc.new { 
           begin
@@ -107,21 +108,13 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   private
 
   def json?(text)
-    text.match(/^\[.+\]$/) || text.match(/^\{.+\}$/) || text.match(/^[\d\.\-]+$/)
+    text.match(/^\[.+\]$/) || text.match(/^\{.+\}$/)
   end
 
-  def quoted_json?(text)
+  def quoted_value?(text)
     # to improbe compatibility with fluentd v1-config
     trim_quote = text[1..text.size-2]
-    text.match(/(^'.+'$|^".+"$)/) && (json_array_block?(trim_quote) || json_hash_block?(trim_quote))
-  end
-
-  def json_array_block?(text)
-    text.match(/^\[[^\{]*?\{.+\}[^\}]*?\]$/)
-  end
-
-  def json_hash_block?(text)
-    text.match(/^\{[^\{]*?\{.+\}[^\}]*?\}$/)
+    text.match(/(^'.+'$|^".+"$)/)
   end
 
   def add_geoip_field(record)
@@ -131,6 +124,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
         rewrited = placeholder[value]
       elsif json?(value)
         rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN) {|match|
+          match = match[1..match.size-2] if quoted_value?(match)
           Yajl::Encoder.encode(placeholder[match])
         }
         rewrited = parse_json(rewrited)

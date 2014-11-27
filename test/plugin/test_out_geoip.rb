@@ -12,8 +12,8 @@ class GeoipOutputTest < Test::Unit::TestCase
     tag               geoip.${tag}
   ]
 
-  def create_driver(conf=CONFIG,tag='test')
-    Fluent::Test::OutputTestDriver.new(Fluent::GeoipOutput, tag).configure(conf)
+  def create_driver(conf=CONFIG,tag='test',use_v1=false)
+    Fluent::Test::OutputTestDriver.new(Fluent::GeoipOutput, tag).configure(conf, use_v1)
   end
 
   def test_configure
@@ -327,22 +327,22 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal [nil, nil], emits[1][2]['string_array']
   end
 
+  CONFIG_QUOTED_RECORD = %[
+    geoip_lookup_key  host
+    <record>
+      location_properties  '{ "lat": ${latitude["host"]}, "lon": ${longitude["host"]} }'
+      location_string      ${latitude['host']},${longitude['host']}
+      location_string2     ${country_code["host"]}
+      location_array       "[${longitude['host']},${latitude['host']}]"
+      location_array2      '[${longitude["host"]},${latitude["host"]}]'
+      peculiar_pattern     '[GEOIP] message => {"lat":${latitude["host"]}, "lon":${longitude["host"]}}'
+    </record>
+    remove_tag_prefix input.
+    tag               geoip.${tag}
+  ]
 
-
-  def test_emit_v1_parser
-    d1 = create_driver(%[
-      geoip_lookup_key  host
-      <record>
-        location_properties  '{ "lat": ${latitude["host"]}, "lon": ${longitude["host"]} }'
-        location_string      ${latitude['host']},${longitude['host']}
-        location_string2     ${latitude["host"]},${longitude["host"]}
-        location_array       "[${longitude['host']},${latitude['host']}]"
-        location_array2      '[${longitude["host"]},${latitude["host"]}]'
-        peculiar_pattern     [GEOIP] message => {"lat":${latitude['host']}, "lon":${longitude['host']}}
-      </record>
-      remove_tag_prefix input.
-      tag               geoip.${tag}
-    ], 'input.access')
+  def test_emit_quoted_record
+    d1 = create_driver(CONFIG_QUOTED_RECORD, 'input.access')
     d1.run do
       d1.emit({'host' => '66.102.3.80', 'message' => 'valid ip'})
     end
@@ -352,10 +352,49 @@ class GeoipOutputTest < Test::Unit::TestCase
     location_properties = { "lat" => 37.4192008972168, "lon"=> -122.05740356445312 }
     assert_equal location_properties, emits[0][2]['location_properties']
     assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['location_string']
-    assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['location_string2']
+    assert_equal 'US', emits[0][2]['location_string2']
     assert_equal [-122.05740356445312, 37.4192008972168], emits[0][2]['location_array']
     assert_equal [-122.05740356445312, 37.4192008972168], emits[0][2]['location_array2']
     assert_equal '[GEOIP] message => {"lat":37.4192008972168, "lon":-122.05740356445312}', emits[0][2]['peculiar_pattern']
+  end
+
+  def test_emit_v1_config_compatibility
+    d1 = create_driver(CONFIG_QUOTED_RECORD, 'input.access', true)
+    d1.run do
+      d1.emit({'host' => '66.102.3.80', 'message' => 'valid ip'})
+    end
+    emits = d1.emits
+    assert_equal 1, emits.length
+    assert_equal 'geoip.access', emits[0][0] # tag
+    location_properties = { "lat" => 37.4192008972168, "lon"=> -122.05740356445312 }
+    assert_equal location_properties, emits[0][2]['location_properties']
+    assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['location_string']
+    assert_equal 'US', emits[0][2]['location_string2']
+    assert_equal [-122.05740356445312, 37.4192008972168], emits[0][2]['location_array']
+    assert_equal [-122.05740356445312, 37.4192008972168], emits[0][2]['location_array2']
+    assert_equal '[GEOIP] message => {"lat":37.4192008972168, "lon":-122.05740356445312}', emits[0][2]['peculiar_pattern']
+  end
+
+  def test_emit_multiline_v1_config
+    d1 = create_driver(%[
+      geoip_lookup_key  host
+      <record>
+        location_properties  {
+          "city": "${city['host']}",
+          "country_code": "${country_code['host']}"
+        }
+      </record>
+      remove_tag_prefix input.
+      tag               geoip.${tag}
+    ], 'input.access', true)
+    d1.run do
+      d1.emit({'host' => '66.102.3.80', 'message' => 'valid ip'})
+    end
+    emits = d1.emits
+    assert_equal 1, emits.length
+    assert_equal 'geoip.access', emits[0][0] # tag
+    location_properties = { "city" => "Mountain View", "country_code"=> "US" }
+    assert_equal location_properties, emits[0][2]['location_properties']
   end
 end
 
