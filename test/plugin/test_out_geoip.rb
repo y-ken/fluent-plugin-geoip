@@ -381,7 +381,9 @@ class GeoipOutputTest < Test::Unit::TestCase
       <record>
         location_properties  {
           "city": "${city['host']}",
-          "country_code": "${country_code['host']}"
+          "country_code": "${country_code['host']}",
+          "latitude": "${latitude['host']}",
+          "longitude": "${longitude['host']}"
         }
       </record>
       remove_tag_prefix input.
@@ -393,7 +395,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     emits = d1.emits
     assert_equal 1, emits.length
     assert_equal 'geoip.access', emits[0][0] # tag
-    location_properties = { "city" => "Mountain View", "country_code"=> "US" }
+    location_properties = { "city"=>"Mountain View", "country_code"=>"US", "latitude"=>37.4192008972168, "longitude"=>-122.05740356445312 }
     assert_equal location_properties, emits[0][2]['location_properties']
   end
 end
