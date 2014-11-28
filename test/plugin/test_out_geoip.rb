@@ -330,7 +330,7 @@ class GeoipOutputTest < Test::Unit::TestCase
   CONFIG_QUOTED_RECORD = %[
     geoip_lookup_key  host
     <record>
-      location_properties  '{ "lat": ${latitude["host"]}, "lon": ${longitude["host"]} }'
+      location_properties  '{ "country_code" : "${country_code["host"]}", "lat": ${latitude["host"]}, "lon": ${longitude["host"]} }'
       location_string      ${latitude['host']},${longitude['host']}
       location_string2     ${country_code["host"]}
       location_array       "[${longitude['host']},${latitude['host']}]"
@@ -349,7 +349,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     emits = d1.emits
     assert_equal 1, emits.length
     assert_equal 'geoip.access', emits[0][0] # tag
-    location_properties = { "lat" => 37.4192008972168, "lon"=> -122.05740356445312 }
+    location_properties = { "country_code" => "US", "lat" => 37.4192008972168, "lon"=> -122.05740356445312 }
     assert_equal location_properties, emits[0][2]['location_properties']
     assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['location_string']
     assert_equal 'US', emits[0][2]['location_string2']
@@ -366,7 +366,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     emits = d1.emits
     assert_equal 1, emits.length
     assert_equal 'geoip.access', emits[0][0] # tag
-    location_properties = { "lat" => 37.4192008972168, "lon"=> -122.05740356445312 }
+    location_properties = { "country_code" => "US", "lat" => 37.4192008972168, "lon"=> -122.05740356445312 }
     assert_equal location_properties, emits[0][2]['location_properties']
     assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['location_string']
     assert_equal 'US', emits[0][2]['location_string2']
