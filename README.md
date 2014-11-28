@@ -185,24 +185,17 @@ http://dev.maxmind.com/geoip/legacy/csv/
 Provides these placeholders for adding field of geolocate results.<br />
 For more example of geolocating, you can try these websites like [Geo IP Address View](http://www.geoipview.com/) or [View my IP information](http://www.geoiptool.com/en/).
 
-* ${city[lookup_field]}
-  * ex) "Ithaca"
-* ${latitude[lookup_field]}
-  * ex) 42.4277992248535
-* ${longitude[lookup_field]}
-  * ex) -76.4981994628906
-* ${country_code3[lookup_field]}
-  * ex) "USA"
-* ${country_code[lookup_field]}
-  * ex) "US"
-* ${country_name[lookup_field]}
-  * ex) "United States"
-* ${dma_code[lookup_field]}
-  * ex) 555
-* ${area_code[lookup_field]}
-  * ex) 607
-* ${region[lookup_field]}
-  * ex) "NY"
+| placeholder attributes         | output example    |
+|--------------------------------|-------------------|
+| ${city[lookup_field]}          | "Ithaca"          |
+| ${latitude[lookup_field]}      | 42.4277992248535  |
+| ${longitude[lookup_field]}     | -76.4981994628906 |
+| ${country_code3[lookup_field]} | "USA"             |
+| ${country_code[lookup_field]}  | "US"              |
+| ${country_name[lookup_field]}  | "United States"   |
+| ${dma_code[lookup_field]}      | 555               |
+| ${area_code[lookup_field]}     | 607               |
+| ${region[lookup_field]}        | "NY"              |
 
 ## Parameters
 
