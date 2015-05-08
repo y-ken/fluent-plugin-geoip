@@ -16,9 +16,11 @@ before use, install dependent library as:
 
 ```bash
 # for RHEL/CentOS
+$ sudo yum group install "Development Tools"
 $ sudo yum install geoip-devel --enablerepo=epel
 
 # for Ubuntu/Debian
+$ sudo apt-get install build-essential
 $ sudo apt-get install libgeoip-dev
 ```
 
