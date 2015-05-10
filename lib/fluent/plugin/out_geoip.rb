@@ -28,10 +28,20 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   end
 
   def initialize
-    require 'geoip'
+    load_geoip
     require 'yajl'
 
     super
+  end
+
+  def load_geoip
+    @use_fast_geoip = true
+    begin
+      gem 'geoip-c'
+    rescue LoadError
+      gem 'geoip'
+      @use_fast_geoip = false
+    end
   end
 
   def configure(conf)
