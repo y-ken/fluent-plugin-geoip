@@ -1,9 +1,12 @@
 language: ruby
 
 rvm:
+  - 2.2
   - 2.1
   - 2.0.0
   - 1.9.3
 
 before_install:
   - sudo apt-get install libgeoip-dev
+
+install: gem install geoip-c geoip

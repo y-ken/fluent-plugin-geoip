@@ -12,6 +12,9 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   config_param :geoip_lookup_key, :string, :default => 'host'
   config_param :tag, :string, :default => nil
 
+  # Prior C native gem of 'geoip-c'(faster) lather than pure ruby implemented gem 'geoip'(slower).
+  config_param :use_fast_geoip, :bool, :default => true
+
   include Fluent::HandleTagNameMixin
   include Fluent::SetTagKeyMixin
   config_set_default :include_tag_key, false
@@ -28,16 +31,17 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   end
 
   def initialize
-    load_geoip
-    require 'yajl'
-
     super
+
+    require 'yajl'
+    switch_geoip_gem
+    require 'geoip'
   end
 
-  def load_geoip
-    @use_fast_geoip = true
+  def switch_geoip_gem
+    prior_gem = @use_fast_geoip ? 'geoip-c' : 'geoip'
     begin
-      gem 'geoip-c'
+      gem prior_gem
     rescue LoadError
       gem 'geoip'
       @use_fast_geoip = false
