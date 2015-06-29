@@ -69,6 +69,9 @@ $ sudo td-agent-gem install fluent-plugin-geoip
   remove_tag_prefix access.
   tag               geoip.${tag}
 
+  # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
+  skip_adding_null_record  true
+
   # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
   log_level         info
 
@@ -110,12 +113,15 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
     # ex. "37.4192008972168,-122.05740356445312"
     location_string      ${latitude["host"]},${longitude["host"]}
     
-    # lat lon as array (it is useful for Kibana's bettermap.)
+    # GeoJSON (lat lon as array) is useful for Kibana's bettermap.
     # ex. [-122.05740356445312, 37.4192008972168]
     location_array       [${longitude["host"]},${latitude["host"]}]
   </record>
   remove_tag_prefix      access.
   tag                    geoip.${tag}
+
+  # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
+  skip_adding_null_record  true
 </match>
 ```
 
@@ -132,6 +138,7 @@ On the case of using td-agent2 (v1-config), it have to quote `{ ... }` or `[ ...
   </record>
   remove_tag_prefix      access.
   tag                    geoip.${tag}
+  skip_adding_null_record  true
 </match>
 ```
 
@@ -208,6 +215,11 @@ Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/
 
 Add original tag name into filtered record using SetTagKeyMixin.<br />
 Further details are written at http://docs.fluentd.org/articles/in_exec
+
+* `skip_adding_null_record` (default: false)
+
+Skip adding geoip fields when this valaues to `true`.
+On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
 
 * `remove_tag_prefix`
 * `remove_tag_suffix`

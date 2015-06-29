@@ -162,7 +162,16 @@ class GeoipOutputTest < Test::Unit::TestCase
   end
 
   def test_emit_with_unknown_address
-    d1 = create_driver(CONFIG, 'input.access')
+    d1 = create_driver(%[
+      geoip_lookup_key  host
+      <record>
+        geoip_city      ${city['host']}
+        geopoint        [${longitude['host']}, ${latitude['host']}]
+      </record>
+      skip_adding_null_record false
+      remove_tag_prefix input.
+      tag               geoip.${tag}
+    ], 'input.access')
     d1.run do
       # 203.0.113.1 is a test address described in RFC5737
       d1.emit({'host' => '203.0.113.1', 'message' => 'invalid ip'})
@@ -174,6 +183,35 @@ class GeoipOutputTest < Test::Unit::TestCase
     assert_equal nil, emits[0][2]['geoip_city']
     assert_equal 'geoip.access', emits[1][0] # tag
     assert_equal nil, emits[1][2]['geoip_city']
+  end
+
+  def test_emit_with_skip_unknown_address
+    d1 = create_driver(%[
+      geoip_lookup_key  host
+      <record>
+        geoip_city      ${city['host']}
+        geopoint        [${longitude['host']}, ${latitude['host']}]
+      </record>
+      skip_adding_null_record true
+      remove_tag_prefix input.
+      tag               geoip.${tag}
+    ], 'input.access')
+    d1.run do
+      # 203.0.113.1 is a test address described in RFC5737
+      d1.emit({'host' => '203.0.113.1', 'message' => 'invalid ip'})
+      d1.emit({'host' => '0', 'message' => 'invalid ip'})
+      d1.emit({'host' => '8.8.8.8', 'message' => 'google public dns'})
+    end
+    emits = d1.emits
+    assert_equal 3, emits.length
+    assert_equal 'geoip.access', emits[0][0] # tag
+    assert_equal nil, emits[0][2]['geoip_city']
+    assert_equal nil, emits[0][2]['geopoint']
+    assert_equal 'geoip.access', emits[1][0] # tag
+    assert_equal nil, emits[1][2]['geoip_city']
+    assert_equal nil, emits[1][2]['geopoint']
+    assert_equal 'Mountain View', emits[2][2]['geoip_city']
+    assert_equal [-122.08380126953125, 37.38600158691406], emits[2][2]['geopoint']
   end
 
   def test_emit_multiple_key
