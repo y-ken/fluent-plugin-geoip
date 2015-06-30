@@ -10,6 +10,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
 
   config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
   config_param :geoip_lookup_key, :string, :default => 'host'
+  config_param :geoip_add_empty_record, :bool, :default => false
   config_param :tag, :string, :default => nil
 
   include Fluent::HandleTagNameMixin
@@ -119,6 +120,11 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
 
   def add_geoip_field(record)
     placeholder = create_placeholder(geolocate(get_address(record)))
+    # check if we record is empty and if we need to add it
+    if placeholder.empty? and not @geoip_add_empty_record
+    	return record
+	end
+
     @map.each do |record_key, value|
       if value.match(REGEXP_PLACEHOLDER_SINGLE)
         rewrited = placeholder[value]
