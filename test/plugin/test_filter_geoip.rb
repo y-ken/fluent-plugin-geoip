@@ -17,7 +17,7 @@ class GeoipFilterTest < Test::Unit::TestCase
   end
 
   def test_configure
-    assert_raise(Fluent::ConfigError) {
+    assert_nothing_raised {
       d = create_driver('')
     }
     assert_raise(Fluent::ConfigError) {
