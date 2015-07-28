@@ -1,5 +1,3 @@
-require 'fluent/mixin/rewrite_tag_name'
-
 module Fluent
   class GeoipFilter < Filter
     Plugin.register_filter('geoip', self)
@@ -11,14 +9,10 @@ module Fluent
 
     config_param :geoip_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
     config_param :geoip_lookup_key, :string, :default => 'host'
-    config_param :tag, :string, :default => nil
     config_param :skip_adding_null_record, :bool, :default => false
 
-    include HandleTagNameMixin
-    include SetTagKeyMixin
     config_set_default :include_tag_key, false
 
-    include Mixin::RewriteTagName
     config_param :hostname_command, :string, :default => 'hostname'
 
     config_param :flush_interval, :time, :default => 0
@@ -74,11 +68,6 @@ module Fluent
       @placeholder_keys.each do |key|
         geoip_key = key.match(REGEXP_PLACEHOLDER_SINGLE)[:geoip_key]
         raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
-      end
-      @placeholder_expander = PlaceholderExpander.new
-
-      if ( !@tag && !@remove_tag_prefix && !@remove_tag_suffix && !@add_tag_prefix && !@add_tag_suffix )
-        raise Fluent::ConfigError, "geoip: required at least one option of 'tag', 'remove_tag_prefix', 'remove_tag_suffix', 'add_tag_prefix', 'add_tag_suffix'."
       end
 
       @geoip = GeoIP::City.new(@geoip_database, :memory, false)
