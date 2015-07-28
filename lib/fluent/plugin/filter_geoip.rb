@@ -1,3 +1,5 @@
+require 'fluent/mixin/rewrite_tag_name'
+
 module Fluent
   class GeoipFilter < Filter
     Plugin.register_filter('geoip', self)
