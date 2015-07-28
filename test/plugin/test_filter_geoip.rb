@@ -86,43 +86,6 @@ class GeoipFilterTest < Test::Unit::TestCase
     assert_equal nil, emits[1][2]['geoip_city']
   end
 
-  def test_emit_tag_option
-    d1 = create_driver(%[
-      geoip_lookup_key  host
-      <record>
-        geoip_city      ${city['host']}
-      </record>
-      remove_tag_prefix input.
-      tag               geoip.${tag}
-    ], 'input.access')
-    d1.run do
-      d1.emit({'host' => '66.102.3.80', 'message' => 'valid ip'})
-      d1.emit({'message' => 'missing field'})
-    end
-    emits = d1.emits
-    assert_equal 2, emits.length
-    assert_equal 'input.access', emits[0][0] # tag
-    assert_equal 'Mountain View', emits[0][2]['geoip_city']
-    assert_equal nil, emits[1][2]['geoip_city']
-  end
-
-  def test_emit_tag_parts
-    d1 = create_driver(%[
-      geoip_lookup_key  host
-      <record>
-        geoip_city      ${city['host']}
-      </record>
-      tag               geoip.${tag_parts[1]}.${tag_parts[2..3]}.${tag_parts[-1]}
-    ], '0.1.2.3')
-    d1.run do
-      d1.emit({'host' => '66.102.3.80'})
-    end
-    emits = d1.emits
-    assert_equal 1, emits.length
-    assert_equal '0.1.2.3', emits[0][0] # tag
-    assert_equal 'Mountain View', emits[0][2]['geoip_city']
-  end
-
   def test_emit_with_dot_key
     d1 = create_driver(%[
       geoip_lookup_key  ip.origin, ip.dest
