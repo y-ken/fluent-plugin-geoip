@@ -12,7 +12,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     tag               geoip.${tag}
   ]
 
-  def create_driver(conf=CONFIG,tag='test',use_v1=false)
+  def create_driver(conf=CONFIG, tag='test', use_v1=false)
     Fluent::Test::FilterTestDriver.new(Fluent::GeoipFilter, tag).configure(conf, use_v1)
   end
 
