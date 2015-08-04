@@ -18,7 +18,7 @@ class GeoipFilterTest < Test::Unit::TestCase
   end
 
   def filter(config, messages, use_v1=false)
-    d = create_driver(config, use_v1)
+    d = create_driver(config, 'test', use_v1)
     d.run {
       messages.each {|message|
         d.filter(message, @time)
