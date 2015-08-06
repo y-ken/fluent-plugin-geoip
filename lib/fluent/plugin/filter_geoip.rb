@@ -20,8 +20,6 @@ module Fluent
 
 
     def initialize
-      require 'geoip'
-      require 'yajl'
       require 'fluent/plugin/geoip_supplement'
 
       super

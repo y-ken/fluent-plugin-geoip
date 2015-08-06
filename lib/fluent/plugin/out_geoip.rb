@@ -29,8 +29,6 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   end
 
   def initialize
-    require 'geoip'
-    require 'yajl'
     require 'fluent/plugin/geoip_supplement'
 
     super

@@ -1,3 +1,6 @@
+require 'geoip'
+require 'yajl'
+
 module Fluent
   class GeoIPSupplement
     REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\[['"](?<record_key>-?[^'"]+)['"]\]\}$/
