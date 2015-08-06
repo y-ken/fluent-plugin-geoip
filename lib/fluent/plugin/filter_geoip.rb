@@ -1,5 +1,3 @@
-require 'fluent/plugin/geoip_supplement'
-
 module Fluent
   class GeoipFilter < Filter
     Plugin.register_filter('geoip', self)
@@ -24,6 +22,7 @@ module Fluent
     def initialize
       require 'geoip'
       require 'yajl'
+      require 'fluent/plugin/geoip_supplement'
 
       super
     end

@@ -1,5 +1,4 @@
 require 'fluent/mixin/rewrite_tag_name'
-require 'fluent/plugin/geoip_supplement'
 
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
@@ -32,6 +31,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   def initialize
     require 'geoip'
     require 'yajl'
+    require 'fluent/plugin/geoip_supplement'
 
     super
   end
