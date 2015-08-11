@@ -56,7 +56,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
 
   def write(chunk)
     chunk.msgpack_each do |tag, time, record|
-      Fluent::Engine.emit(tag, time, @supplement.add_geoip_field(record))
+      router.emit(tag, time, @supplement.add_geoip_field(record))
     end
   end
 end
