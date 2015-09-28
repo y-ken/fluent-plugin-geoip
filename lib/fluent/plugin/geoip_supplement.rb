@@ -56,7 +56,7 @@ module Fluent
         raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
       end
 
-      if plugin.instance_of?(Fluent::Output)
+      if plugin.is_a?(Fluent::Output)
         @placeholder_expander = PlaceholderExpander.new
         unless have_tag_option?(plugin)
           raise Fluent::ConfigError, "geoip: required at least one option of 'tag', 'remove_tag_prefix', 'remove_tag_suffix', 'add_tag_prefix', 'add_tag_suffix'."
