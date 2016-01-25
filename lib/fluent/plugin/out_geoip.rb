@@ -23,6 +23,11 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
     define_method("log") { $log }
   end
 
+  # To support Fluentd v0.10.57 or earlier
+  unless method_defined?(:router)
+    define_method("router") { Fluent::Engine }
+  end
+
   def initialize
     require 'fluent/plugin/geoip_supplement'
 
