@@ -8,3 +8,4 @@ rvm:
 before_install:
   - sudo apt-get update
   - sudo apt-get install libgeoip-dev
+  - gem update bundler
