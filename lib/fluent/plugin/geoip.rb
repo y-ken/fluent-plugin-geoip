@@ -2,7 +2,7 @@ require 'geoip'
 require 'yajl'
 
 module Fluent
-  class GeoIPSupplement
+  class GeoIP
     REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\[['"](?<record_key>-?[^'"]+)['"]\]\}$/
     REGEXP_PLACEHOLDER_SCAN = /['"]?(\$\{[^\}]+?\})['"]?/
 
@@ -63,7 +63,7 @@ module Fluent
         end
       end
 
-      @geoip = GeoIP::City.new(plugin.geoip_database, :memory, false)
+      @geoip = ::GeoIP::City.new(plugin.geoip_database, :memory, false)
     end
 
     def add_geoip_field(record)

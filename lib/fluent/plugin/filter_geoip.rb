@@ -15,18 +15,18 @@ module Fluent
 
 
     def initialize
-      require 'fluent/plugin/geoip_supplement'
+      require 'fluent/plugin/geoip'
 
       super
     end
 
     def configure(conf)
       super
-      @supplement = GeoIPSupplement.new(self, conf)
+      @geoip = Fluent::GeoIP.new(self, conf)
     end
 
     def filter(tag, time, record)
-      @supplement.add_geoip_field(record)
+      @geoip.add_geoip_field(record)
     end
   end
 end

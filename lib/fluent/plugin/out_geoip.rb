@@ -29,17 +29,17 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   end
 
   def initialize
-    require 'fluent/plugin/geoip_supplement'
+    require 'fluent/plugin/geoip'
 
     super
   end
 
   def configure(conf)
     super
-    Fluent::GeoIPSupplement.class_eval do
+    Fluent::GeoIP.class_eval do
       include Fluent::Mixin::RewriteTagName
     end
-    @supplement = Fluent::GeoIPSupplement.new(self, conf)
+    @geoip = Fluent::GeoIP.new(self, conf)
   end
 
   def start
@@ -56,7 +56,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
 
   def write(chunk)
     chunk.msgpack_each do |tag, time, record|
-      router.emit(tag, time, @supplement.add_geoip_field(record))
+      router.emit(tag, time, @geoip.add_geoip_field(record))
     end
   end
 end
