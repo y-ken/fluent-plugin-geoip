@@ -23,6 +23,7 @@ unless ENV.has_key?('VERBOSE')
 end
 
 require 'fluent/plugin/out_geoip'
+require 'fluent/plugin/filter_geoip'
 
 class Test::Unit::TestCase
 end
