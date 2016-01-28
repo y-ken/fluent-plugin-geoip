@@ -23,7 +23,9 @@ unless ENV.has_key?('VERBOSE')
 end
 
 require 'fluent/plugin/out_geoip'
-require 'fluent/plugin/filter_geoip'
+if Fluent.const_defined?(:Filter)
+  require 'fluent/plugin/filter_geoip'
+end
 
 class Test::Unit::TestCase
 end

@@ -2,6 +2,7 @@ require 'helper'
 
 class GeoipFilterTest < Test::Unit::TestCase
   def setup
+    omit_unless(Fluent.const_defined?(:Filter))
     Fluent::Test.setup
     @time = Fluent::Engine.now
   end
