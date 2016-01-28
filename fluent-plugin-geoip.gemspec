@@ -18,6 +18,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
+  spec.add_development_dependency "appraisal"
 
   if defined?(RUBY_VERSION) && RUBY_VERSION > '2.2'
     spec.add_development_dependency "test-unit", '~> 3'
@@ -27,3 +28,4 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "fluent-mixin-rewrite-tag-name"
   spec.add_runtime_dependency "geoip-c"
 end
+
