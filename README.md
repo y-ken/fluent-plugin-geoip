@@ -44,6 +44,8 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
 ## Usage
 
+### For GeoipOutput
+
 ```xml
 <match access.apache>
   type geoip
@@ -145,7 +147,48 @@ On the case of using td-agent2 (v1-config), it have to quote `{ ... }` or `[ ...
 </match>
 ```
 
+### For GeoipFilter
+
+Note that filter version of geoip plugin does not have handling tag feature.
+
+```xml
+<filter access.apache>
+  @type geoip
+
+  # Specify one or more geoip lookup field which has ip address (default: host)
+  # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
+  geoip_lookup_key  host
+
+  # Specify optional geoip database (using bundled GeoLiteCity databse by default)
+  geoip_database    "/path/to/your/GeoIPCity.dat"
+
+  # Set adding field with placeholder (more than one settings are required.)
+  <record>
+    city            ${city["host"]}
+    latitude        ${latitude["host"]}
+    longitude       ${longitude["host"]}
+    country_code3   ${country_code3["host"]}
+    country         ${country_code["host"]}
+    country_name    ${country_name["host"]}
+    dma             ${dma_code["host"]}
+    area            ${area_code["host"]}
+    region          ${region["host"]}
+  </record>
+
+  # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
+  skip_adding_null_record  true
+
+  # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
+  log_level         info
+
+  # Set buffering time (default: 0s)
+  flush_interval    1s
+</filter>
+```
+
 ## Tutorial
+
+### For GeoipOutput
 
 #### configuration
 
@@ -192,6 +235,44 @@ $ tail /var/log/td-agent/td-agent.log
 For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.<br />
 http://dev.maxmind.com/geoip/legacy/csv/
 
+### For GeoipFilter
+
+#### configuration
+
+```xml
+<source>
+  @type forward
+</source>
+
+<filter test.geoip>
+  @type    geoip
+  geoip_lookup_key  host
+  <record>
+    city  ${city["host"]}
+    lat   ${latitude["host"]}
+    lon   ${longitude["host"]}
+  </record>
+</filter>
+
+<match test.**>
+  @type stdout
+</match>
+```
+
+#### result
+
+```bash
+# forward record with Google's ip address.
+$ echo '{"host":"66.102.9.80","message":"test"}' | fluent-cat test.geoip
+
+# check the result at stdout
+$ tail /var/log/td-agent/td-agent.log
+2016-02-01 12:04:37 +0900 test.geoip: {"host":"66.102.9.80","message":"test","city":"Mountain View","lat":37.4192008972168,"lon":-122.05740356445312}
+```
+
+For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.<br />
+http://dev.maxmind.com/geoip/legacy/csv/
+
 ## Placeholders
 
 Provides these placeholders for adding field of geolocate results.<br />
@@ -212,6 +293,8 @@ For more example of geolocating, you can try these websites like [Geo IP Address
 Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/#GeoIP_City_Edition_CSV_Database_Fields
 
 ## Parameters
+
+### GeoipOutput
 
 * `include_tag_key` (default: false)
 * `tag_key`
@@ -234,6 +317,24 @@ Set one or more option are required unless using `tag` option for editing tag na
 * `tag`
 
 On using this option with tag placeholder like `tag geoip.${tag}` (test code is available at [test_out_geoip.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/test/plugin/test_out_geoip.rb)), it will be overwrite after these options affected. which are remove_tag_prefix, remove_tag_suffix, add_tag_prefix and add_tag_suffix.
+
+* `flush_interval` (default: 0 sec)
+
+Set buffering time to execute bulk lookup geoip.
+
+### GeoipFilter
+
+Note that filter version of `geoip` plugin does not have handling `tag` feature.
+
+* `include_tag_key` (default: false)
+
+Add original tag name into filtered record using SetTagKeyMixin.<br />
+Further details are written at http://docs.fluentd.org/articles/in_exec
+
+* `skip_adding_null_record` (default: false)
+
+Skip adding geoip fields when this valaues to `true`.
+On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
 
 * `flush_interval` (default: 0 sec)
 
