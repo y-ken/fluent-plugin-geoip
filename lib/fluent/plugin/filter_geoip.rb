@@ -25,8 +25,17 @@ module Fluent
       @geoip = Fluent::GeoIP.new(self, conf)
     end
 
-    def filter(tag, time, record)
-      @geoip.add_geoip_field(record)
+    def filter_stream(tag, es)
+      new_es = MultiEventStream.new
+      es.each do |time, record|
+        begin
+          filtered_record = @geoip.add_geoip_field(record)
+          new_es.add(time, filtered_record) if filtered_record
+        rescue => e
+          router.emit_error_event(tag, time, record, e)
+        end
+      end
+      new_es
     end
   end
 end
