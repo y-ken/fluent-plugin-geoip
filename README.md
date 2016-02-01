@@ -57,7 +57,6 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
-    city            ${city["host"]}
     latitude        ${latitude["host"]}
     longitude       ${longitude["host"]}
     country_code3   ${country_code3["host"]}
@@ -66,6 +65,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
     dma             ${dma_code["host"]}
     area            ${area_code["host"]}
     region          ${region["host"]}
+    city            ${city["host"]}
   </record>
 
   # Settings for tag
@@ -163,9 +163,9 @@ On the case of using td-agent2 (v1-config), it have to quote `{ ... }` or `[ ...
     type    geoip
     geoip_lookup_key  host
     <record>
-      city  ${city["host"]}
-      lat   ${latitude["host"]}
-      lon   ${longitude["host"]}
+      lat     ${latitude["host"]}
+      lon     ${longitude["host"]}
+      country ${country_code["host"]}
     </record>
     remove_tag_prefix test.
     tag     debug.${tag}
@@ -186,7 +186,7 @@ $ echo '{"host":"66.102.9.80","message":"test"}' | fluent-cat test.geoip
 # check the result at stdout
 $ tail /var/log/td-agent/td-agent.log
 2013-08-04 16:21:32 +0900 test.geoip: {"host":"66.102.9.80","message":"test"}
-2013-08-04 16:21:32 +0900 debug.geoip: {"host":"66.102.9.80","message":"test","city":"Mountain View","lat":37.4192008972168,"lon":-122.05740356445312}
+2013-08-04 16:21:32 +0900 debug.geoip: {"host":"66.102.9.80","message":"test","lat":37.4192008972168,"lon":-122.05740356445312,"country":"US"}
 ```
 
 For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.<br />
