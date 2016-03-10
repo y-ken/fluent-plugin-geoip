@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.version       = "0.6.0"
   spec.authors       = ["Kentaro Yoshida"]
   spec.email         = ["y.ken.studio@gmail.com"]
-  spec.summary       = %q{Fluentd Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.}
+  spec.summary       = %q{Fluentd Filter plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.}
   spec.homepage      = "https://github.com/y-ken/fluent-plugin-geoip"
   spec.license       = "Apache-2.0"
 
