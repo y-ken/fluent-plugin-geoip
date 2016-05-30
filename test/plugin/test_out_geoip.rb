@@ -13,7 +13,7 @@ class GeoipOutputTest < Test::Unit::TestCase
   ]
 
   def create_driver(conf=CONFIG,tag='test',use_v1=false)
-    Fluent::Test::OutputTestDriver.new(Fluent::GeoipOutput, tag).configure(conf, use_v1)
+    Fluent::Test::BufferedOutputTestDriver.new(Fluent::GeoipOutput, tag).configure(conf, use_v1)
   end
 
   def test_configure
