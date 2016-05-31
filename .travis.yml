@@ -19,5 +19,8 @@ gemfile:
   - gemfiles/fluentd_v0.12.gemfile
 
 matrix:
+  fast_finish: true
   allow_failures:
     - gemfile: gemfiles/fluentd_v0.10.gemfile
+    - rvm: 1.9.3
+    - rvm: 2.0.0
