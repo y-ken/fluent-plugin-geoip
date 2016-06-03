@@ -13,7 +13,12 @@ class GeoipOutputTest < Test::Unit::TestCase
   ]
 
   def create_driver(conf=CONFIG,tag='test',use_v1=false)
-    Fluent::Test::BufferedOutputTestDriver.new(Fluent::GeoipOutput, tag).configure(conf, use_v1)
+    require 'fluent/version'
+    if Gem::Version.new(Fluent::VERSION) < Gem::Version.new('0.12')
+      Fluent::Test::OutputTestDriver.new(Fluent::GeoipOutput, tag).configure(conf, use_v1)
+    else
+      Fluent::Test::BufferedOutputTestDriver.new(Fluent::GeoipOutput, tag).configure(conf, use_v1)
+    end
   end
 
   def test_configure
