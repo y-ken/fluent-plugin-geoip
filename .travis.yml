@@ -2,11 +2,9 @@ sudo: required
 language: ruby
 
 rvm:
-  - 2.3.0
+  - 2.3
   - 2.2
   - 2.1
-  - 2.0.0
-  - 1.9.3
 
 before_install:
   - sudo apt-get update
@@ -19,7 +17,11 @@ gemfile:
   - gemfiles/fluentd_v0.12.gemfile
 
 matrix:
-  fast_finish: true
+  include:
+    - rvm: 1.9.3
+      gemfile: gemfiles/fluentd_v0.10.gemfile
+    - rvm: 2.0.0
+      gemfile: gemfiles/fluentd_v0.10.gemfile
   allow_failures:
     - gemfile: gemfiles/fluentd_v0.10.gemfile
     - rvm: 1.9.3
