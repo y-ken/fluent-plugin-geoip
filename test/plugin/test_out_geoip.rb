@@ -13,8 +13,8 @@ class GeoipOutputTest < Test::Unit::TestCase
     tag               geoip.${tag[1]}
   ]
 
-  def create_driver(conf = CONFIG)
-    Fluent::Test::Driver::Output.new(Fluent::Plugin::GeoipOutput).configure(conf)
+  def create_driver(conf = CONFIG, syntax: :v1)
+    Fluent::Test::Driver::Output.new(Fluent::Plugin::GeoipOutput).configure(conf, syntax: syntax)
   end
 
   sub_test_case "configure" do
@@ -137,7 +137,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           geoip_city      ${city.names.en['host']}
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
         d1.feed({'message' => 'missing field'})
@@ -176,7 +176,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           dest_country    ${country.iso_code['ip.dest']}
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'ip.origin' => '66.102.3.80', 'ip.dest' => '8.8.8.8'})
       end
@@ -197,7 +197,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         </record>
         skip_adding_null_record false
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         # 203.0.113.1 is a test address described in RFC5737
         d1.feed({'host' => '203.0.113.1', 'message' => 'invalid ip'})
@@ -221,7 +221,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         </record>
         skip_adding_null_record true
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         # 203.0.113.1 is a test address described in RFC5737
         d1.feed({'host' => '203.0.113.1', 'message' => 'invalid ip'})
@@ -261,7 +261,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           broken_array2   [${location.longitude['undefined']}, ${location.latitude['undefined']}]
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         d1.feed({'from' => {'ip' => '66.102.3.80'}})
         d1.feed({'message' => 'missing field'})
@@ -317,7 +317,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           string_array    [${country.names.en['from.ip']}, ${country.names.en['to.ip']}]
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         d1.feed({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
         d1.feed({'message' => 'missing field'})
@@ -373,7 +373,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     end
 
     def test_emit_v1_config_compatibility
-      d1 = create_driver(config_quoted_record, true)
+      d1 = create_driver(config_quoted_record)
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
       end
@@ -402,7 +402,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           }
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access', true)
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
       end
@@ -423,7 +423,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           geoip_city      ${city['host']}
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
         d1.feed({'message' => 'missing field'})
@@ -462,7 +462,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           dest_country    ${country_code['ip.dest']}
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'ip.origin' => '66.102.3.80', 'ip.dest' => '8.8.8.8'})
       end
@@ -483,7 +483,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         </record>
         skip_adding_null_record false
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         # 203.0.113.1 is a test address described in RFC5737
         d1.feed({'host' => '203.0.113.1', 'message' => 'invalid ip'})
@@ -507,7 +507,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         </record>
         skip_adding_null_record true
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         # 203.0.113.1 is a test address described in RFC5737
         d1.feed({'host' => '203.0.113.1', 'message' => 'invalid ip'})
@@ -547,7 +547,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           broken_array2   [${longitude['undefined']}, ${latitude['undefined']}]
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         d1.feed({'from' => {'ip' => '66.102.3.80'}})
         d1.feed({'message' => 'missing field'})
@@ -603,7 +603,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           string_array    [${country_name['from.ip']}, ${country_name['to.ip']}]
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         d1.feed({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
         d1.feed({'message' => 'missing field'})
@@ -659,7 +659,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     end
 
     def test_emit_v1_config_compatibility
-      d1 = create_driver(config_quoted_record, true)
+      d1 = create_driver(config_quoted_record)
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
       end
@@ -688,7 +688,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           }
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access', true)
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
       end
@@ -706,7 +706,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         geoip_lookup_key  host
         enable_key_city   geoip_city
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
         d1.feed({'message' => 'missing field'})
@@ -725,7 +725,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           geoip_city      ${city['host']}
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
         d1.feed({'message' => 'missing field'})
@@ -762,7 +762,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           dest_country    ${country_code['ip.dest']}
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'ip.origin' => '66.102.3.80', 'ip.dest' => '8.8.8.8'})
       end
@@ -778,7 +778,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         geoip_lookup_key  host.ip
         enable_key_city   geoip_city
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => {'ip' => '66.102.3.80'}, 'message' => 'valid ip'})
         d1.feed({'message' => 'missing field'})
@@ -799,7 +799,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         </record>
         skip_adding_null_record false
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         # 203.0.113.1 is a test address described in RFC5737
         d1.feed({'host' => '203.0.113.1', 'message' => 'invalid ip'})
@@ -822,7 +822,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         </record>
         skip_adding_null_record true
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         # 203.0.113.1 is a test address described in RFC5737
         d1.feed({'host' => '203.0.113.1', 'message' => 'invalid ip'})
@@ -846,7 +846,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         geoip_lookup_key  from.ip, to.ip
         enable_key_city   from_city, to_city
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
         d1.feed({'message' => 'missing field'})
@@ -866,7 +866,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         enable_key_city   from_city, to_city
         enable_key_country_name from_country, to_country
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
         d1.feed({'from' => {'ip' => '66.102.3.80'}})
@@ -911,7 +911,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           broken_array2   [${longitude['undefined']}, ${latitude['undefined']}]
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         d1.feed({'from' => {'ip' => '66.102.3.80'}})
         d1.feed({'message' => 'missing field'})
@@ -966,7 +966,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           string_array    [${country_name['from.ip']}, ${country_name['to.ip']}]
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access')
+      ], syntax: :v0)
       d1.run(default_tag: 'input.access') do
         d1.feed({'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}})
         d1.feed({'message' => 'missing field'})
@@ -1021,7 +1021,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     end
 
     def test_emit_v1_config_compatibility
-      d1 = create_driver(config_quoted_record, true)
+      d1 = create_driver(config_quoted_record)
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
       end
@@ -1049,7 +1049,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           }
         </record>
         tag               geoip.${tag[1]}
-      ], 'input.access', true)
+      ])
       d1.run(default_tag: 'input.access') do
         d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
       end
