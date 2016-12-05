@@ -35,10 +35,14 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
     [tag, time, record].to_msgpack
   end
 
+  def formatted_to_msgpack_binary
+    true
+  end
+
   def write(chunk)
     es = Fluent::MultiEventStream.new
     tag = ""
-    chunk.msgpack_each do |_tag, time, record|
+    chunk.each do |_tag, time, record|
       tag = _tag
       es.add(time, @geoip.add_geoip_field(record))
     end
