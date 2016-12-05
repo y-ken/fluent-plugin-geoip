@@ -20,8 +20,9 @@ class GeoipFilterTest < Test::Unit::TestCase
   def filter(config, messages)
     d = create_driver(config)
     d.run {
+    d.run(default_tag: "input.access") {
       messages.each {|message|
-        d.feed(message, @time)
+        d.feed(@time, message)
       }
     }
     d.events
