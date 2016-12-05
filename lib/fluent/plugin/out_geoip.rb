@@ -3,8 +3,10 @@ require 'fluent/mixin/rewrite_tag_name'
 require 'fluent/plugin/geoip'
 require 'fluent/mixin'
 
-class Fluent::GeoipOutput < Fluent::BufferedOutput
+class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
   Fluent::Plugin.register_output('geoip', self)
+
+  helpers :event_emitter
 
   config_param :geoip_database, :string, default: File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
   config_param :geoip2_database, :string, default: File.dirname(__FILE__) + '/../../../data/GeoLite2-City.mmdb'
