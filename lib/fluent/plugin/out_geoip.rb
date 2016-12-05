@@ -46,6 +46,7 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
       tag = _tag
       es.add(time, @geoip.add_geoip_field(record))
     end
+    tag = extract_placeholders(@tag, chunk.metadata) if @tag
     router.emit_stream(tag, es)
   end
 end
