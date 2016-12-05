@@ -14,13 +14,6 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
   config_param :tag, :string, default: nil
   config_param :skip_adding_null_record, :bool, default: false
 
-  include Fluent::HandleTagNameMixin
-  include Fluent::SetTagKeyMixin
-  config_set_default :include_tag_key, false
-
-  include Fluent::Mixin::RewriteTagName
-  config_param :hostname_command, :string, default: 'hostname'
-
   config_param :flush_interval, :time, default: 0
   config_param :log_level, :string, default: 'warn'
 
@@ -28,9 +21,6 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
 
   def configure(conf)
     super
-    Fluent::GeoIP.class_eval do
-      include Fluent::Mixin::RewriteTagName
-    end
     @geoip = Fluent::GeoIP.new(self, conf)
   end
 
