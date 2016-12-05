@@ -1,3 +1,4 @@
+require 'fluent/plugin/output'
 require 'fluent/mixin/rewrite_tag_name'
 require 'fluent/plugin/geoip'
 require 'fluent/mixin'
