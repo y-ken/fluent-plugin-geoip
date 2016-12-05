@@ -10,6 +10,10 @@ The accuracy details for GeoLite City (free) and GeoIP City (purchased) has desc
 * http://www.maxmind.com/en/geolite_city_accuracy ([lang:ja](http://www.maxmind.com/ja/geolite_city_accuracy))
 * http://www.maxmind.com/en/city_accuracy ([lang:ja](http://www.maxmind.com/ja/city_accuracy))
 
+## Notice
+
+If you want to use this plugin with Fluentd v0.12.x or earlier use xxx.
+
 ## Dependency
 
 before use, install dependent library as:
