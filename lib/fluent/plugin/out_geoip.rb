@@ -6,7 +6,7 @@ require 'fluent/mixin'
 class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
   Fluent::Plugin.register_output('geoip', self)
 
-  helpers :event_emitter
+  helpers :event_emitter, :inject, :compat_parameters
 
   config_param :geoip_database, :string, default: File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
   config_param :geoip2_database, :string, default: File.dirname(__FILE__) + '/../../../data/GeoLite2-City.mmdb'
@@ -20,11 +20,13 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
   config_param :backend_library, :enum, list: Fluent::GeoIP::BACKEND_LIBRARIES, default: :geoip
 
   def configure(conf)
+    compat_parameters_convert(conf, :buffer, default_chunk_key: 'tag')
     super
     @geoip = Fluent::GeoIP.new(self, conf)
   end
 
   def format(tag, time, record)
+    record = inject_values_to_record(tag, time, record)
     [tag, time, record].to_msgpack
   end
 
