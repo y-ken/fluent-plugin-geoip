@@ -22,6 +22,12 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
 
   config_param :backend_library, :enum, :list => Fluent::GeoIP::BACKEND_LIBRARIES, :default => :geoip
 
+  def initialize
+    require 'fluent/plugin/geoip'
+
+    super
+  end
+
   def configure(conf)
     super
     Fluent::GeoIP.class_eval do
