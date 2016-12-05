@@ -1,25 +1,32 @@
 require 'helper'
+require 'fluent/plugin/filter_geoip'
+require 'fluent/test/driver/filter'
 
 class GeoipFilterTest < Test::Unit::TestCase
   def setup
-    omit_unless(Fluent.const_defined?(:Filter))
     Fluent::Test.setup
     @time = Fluent::Engine.now
   end
 
-  def create_driver(conf='', tag='test', use_v1=false)
-    Fluent::Test::FilterTestDriver.new(Fluent::GeoipFilter, tag).configure(conf, use_v1)
+  CONFIG = %[
+    geoip_lookup_key  host
+    enable_key_city   geoip_city
+    remove_tag_prefix input.
+    tag               geoip.${tag}
+  ]
+
+  def create_driver(conf=CONFIG)
+    Fluent::Test::Driver::Filter.new(Fluent::GeoipFilter).configure(conf)
   end
 
-  def filter(config, messages, use_v1=false)
-    d = create_driver(config, 'test', use_v1)
+  def filter(config, messages)
+    d = create_driver(config)
     d.run {
       messages.each {|message|
-        d.filter(message, @time)
+        d.feed(message, @time)
       }
     }
-    filtered = d.filtered_as_array
-    filtered.map {|m| m[2] }
+    d.events
   end
 
   sub_test_case "configure" do
