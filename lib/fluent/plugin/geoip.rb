@@ -129,7 +129,7 @@ module Fluent
       begin
         return Yajl::Parser.parse(message)
       rescue Yajl::ParseError => e
-        log.info "geoip: failed to parse '#{message}' as json.", :error_class => e.class, :error => e.message
+        log.info "geoip: failed to parse '#{message}' as json.", error_class: e.class, error: e.message
         return nil
       end
     end
