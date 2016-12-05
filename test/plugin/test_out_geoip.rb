@@ -20,9 +20,9 @@ class GeoipOutputTest < Test::Unit::TestCase
 
   sub_test_case "configure" do
     test "empty" do
-      assert_raise(Fluent::ConfigError) {
+      assert_nothing_raised do
         create_driver('')
-      }
+      end
     end
 
     test "missing required parameters" do
@@ -40,6 +40,12 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal 'geoip_city', d.instance.config['enable_key_city']
     end
 
+    test "invalid key name" do
+      assert_raise(Fluent::ConfigError.new("geoip: unsupported key cities")) do
+        create_driver('enable_key_cities')
+      end
+    end
+
     test "multiple key config" do
       d = create_driver %[
         geoip_lookup_key  from.ip, to.ip
@@ -51,7 +57,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     end
 
     test "multiple key config (bad configure)" do
-      assert_raise(Fluent::ConfigError) {
+      assert_raise(Fluent::ConfigError) do
         create_driver %[
           geoip_lookup_key  from.ip, to.ip
           enable_key_city   from_city
@@ -59,11 +65,11 @@ class GeoipOutputTest < Test::Unit::TestCase
           remove_tag_prefix input.
           tag               geoip.${tag}
         ]
-      }
+      end
     end
 
     test "invalid json structure w/ Ruby hash like" do
-      assert_raise(Fluent::ConfigError) {
+      assert_raise(Fluent::ConfigParseError) do
         create_driver %[
           geoip_lookup_key  host
           <record>
@@ -72,11 +78,11 @@ class GeoipOutputTest < Test::Unit::TestCase
           remove_tag_prefix input.
           tag               geoip.${tag}
         ]
-      }
+      end
     end
 
     test "invalid json structure w/ unquoted string literal" do
-      assert_raise(Fluent::ConfigError) {
+      assert_raise(Fluent::ConfigParseError) do
         create_driver %[
           geoip_lookup_key  host
           <record>
@@ -85,7 +91,7 @@ class GeoipOutputTest < Test::Unit::TestCase
           remove_tag_prefix input.
           tag               geoip.${tag}
         ]
-      }
+      end
     end
 
     data(geoip: "geoip",
