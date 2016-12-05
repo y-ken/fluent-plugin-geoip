@@ -24,7 +24,7 @@ class GeoipFilterTest < Test::Unit::TestCase
         d.feed(@time, message)
       }
     }
-    d.events
+    d.filtered_records
   end
 
   sub_test_case "configure" do
