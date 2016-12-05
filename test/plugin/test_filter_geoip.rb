@@ -11,8 +11,6 @@ class GeoipFilterTest < Test::Unit::TestCase
   CONFIG = %[
     geoip_lookup_key  host
     enable_key_city   geoip_city
-    remove_tag_prefix input.
-    tag               geoip.${tag}
   ]
 
   def create_driver(conf=CONFIG)
