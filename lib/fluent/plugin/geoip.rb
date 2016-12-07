@@ -136,7 +136,7 @@ module Fluent
       @placeholder_keys.each do |placeholder_key|
         position = placeholder_key.match(REGEXP_PLACEHOLDER_SINGLE)
         next if position.nil? or geodata[position[:record_key]].nil?
-        keys = [position[:record_key], position[:geoip_key].to_sym]
+        keys = [position[:record_key]] + position[:geoip_key].split('.').map(&:to_sym)
         placeholder[placeholder_key] = geodata.dig(*keys)
       end
       placeholder
