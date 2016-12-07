@@ -125,7 +125,7 @@ module Fluent
         }
         address[field] = obj
       end
-      return address
+      address
     end
 
     def geolocate(addresses)
@@ -134,7 +134,7 @@ module Fluent
         geo = ip.nil? ? nil : @geoip.look_up(ip)
         geodata[field] = geo
       end
-      return geodata
+      geodata
     end
 
     def create_placeholder(geodata)
@@ -144,7 +144,7 @@ module Fluent
         next if position.nil? or geodata[position[:record_key]].nil?
         placeholder[placeholder_key] = geodata[position[:record_key]][position[:geoip_key].to_sym]
       end
-      return placeholder
+      placeholder
     end
   end
 end
