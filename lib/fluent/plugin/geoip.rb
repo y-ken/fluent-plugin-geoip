@@ -1,5 +1,6 @@
 require 'geoip'
 require 'yajl'
+require 'dig_rb'
 
 module Fluent
   class GeoIP
@@ -116,14 +117,7 @@ module Fluent
     def get_address(record)
       address = {}
       @geoip_lookup_key.each do |field|
-        address[field] = record[field]; next if not record[field].nil?
-        key = field.split('.')
-        obj = record
-        key.each {|k|
-          break obj = nil if not obj.has_key?(k)
-          obj = obj[k]
-        }
-        address[field] = obj
+        address[field] = record[field] || record.dig(*field.split('.'))
       end
       address
     end
@@ -142,7 +136,8 @@ module Fluent
       @placeholder_keys.each do |placeholder_key|
         position = placeholder_key.match(REGEXP_PLACEHOLDER_SINGLE)
         next if position.nil? or geodata[position[:record_key]].nil?
-        placeholder[placeholder_key] = geodata[position[:record_key]][position[:geoip_key].to_sym]
+        keys = [position[:record_key], position[:geoip_key].to_sym]
+        placeholder[placeholder_key] = geodata.dig(*keys)
       end
       placeholder
     end
