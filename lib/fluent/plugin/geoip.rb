@@ -25,7 +25,7 @@ module Fluent
           if record_key.nil?
             raise Fluent::ConfigError, "geoip: missing value found at '#{key} #{lookup_field}'"
           end
-          @map.store(record_key, "${#{geoip_key}['#{lookup_field}']}")
+          @map[record_key] = "${#{geoip_key}['#{lookup_field}']}"
         end
       end
       if conf.keys.select{|k| k =~ /^enable_key_/}.size > 0
@@ -81,7 +81,7 @@ module Fluent
         else
           rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN, placeholder)
         end
-        record.store(record_key, rewrited)
+        record[record_key] = rewrited
       end
       return record
     end
@@ -116,14 +116,14 @@ module Fluent
     def get_address(record)
       address = {}
       @geoip_lookup_key.each do |field|
-        address.store(field, record[field]); next if not record[field].nil?
+        address[field] = record[field]; next if not record[field].nil?
         key = field.split('.')
         obj = record
         key.each {|k|
           break obj = nil if not obj.has_key?(k)
           obj = obj[k]
         }
-        address.store(field, obj)
+        address[field] = obj
       end
       return address
     end
@@ -132,7 +132,7 @@ module Fluent
       geodata = {}
       addresses.each do |field, ip|
         geo = ip.nil? ? nil : @geoip.look_up(ip)
-        geodata.store(field, geo)
+        geodata[field] = geo
       end
       return geodata
     end
@@ -142,7 +142,7 @@ module Fluent
       @placeholder_keys.each do |placeholder_key|
         position = placeholder_key.match(REGEXP_PLACEHOLDER_SINGLE)
         next if position.nil? or geodata[position[:record_key]].nil?
-        placeholder.store(placeholder_key, geodata[position[:record_key]][position[:geoip_key].to_sym])
+        placeholder[placeholder_key] = geodata[position[:record_key]][position[:geoip_key].to_sym]
       end
       return placeholder
     end
