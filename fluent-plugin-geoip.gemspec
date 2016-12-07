@@ -24,5 +24,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "fluentd"
   spec.add_runtime_dependency "fluent-mixin-rewrite-tag-name"
   spec.add_runtime_dependency "geoip-c"
+  spec.add_runtime_dependency "dig_rb"
 end
-
