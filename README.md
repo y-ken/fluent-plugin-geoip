@@ -243,9 +243,6 @@ Note that filter version of geoip plugin does not have handling tag feature.
 
   # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
   log_level         info
-
-  # Set buffering time (default: 0s)
-  flush_interval    1s
 </filter>
 ```
 
@@ -427,10 +424,6 @@ Further details are written at http://docs.fluentd.org/articles/in_exec
 
 Skip adding geoip fields when this valaues to `true`.
 On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
-
-* `flush_interval` (default: 0 sec)
-
-Set buffering time to execute bulk lookup geoip.
 
 ## Articles
 

@@ -14,7 +14,6 @@ module Fluent::Plugin
 
     config_param :hostname_command, :string, default: 'hostname'
 
-    config_param :flush_interval, :time, default: 0
     config_param :log_level, :string, default: 'warn'
 
     config_param :backend_library, :enum, list: Fluent::GeoIP::BACKEND_LIBRARIES, default: :geoip
