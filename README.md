@@ -16,63 +16,31 @@ If you want to use this plugin with Fluentd v0.12.x or earlier use 0.6.x.
 
 ### Compatibility notice
 
-We've used Fluentd v0.14 API in this plugin since this version.
+We've used Fluentd v0.14 API in this plugin since x.x.x.
 So we have dropped some features.
 
-#### `Fluent::HandleTagNameMixin` feature
+See also [official document](http://docs.fluentd.org/v0.14/articles/plugin-update-from-v12)
 
-* `remove_tag_prefix`
-* `remove_tag_suffix`
-* `add_tag_prefix`
-* `add_tag_suffix`
-
-Alternative:
-
-Use placeholders `${tag}, ${tag[0]}, ${tag[1]}`
-
-```
-<match input.access>
-  @type geoip
-  geoip_lookup_key  host
-  geoip_database    "/path/to/your/GeoIPCity.dat"
-  # Old version config
-  # remove_tag_prefix input.
-  # tag               geoip.${tag}
-  #
-  # Alternative way for newer version
-  tag geoip.${tag[1]}
-  <record>
-    ...
-  </record>
-</match>
-```
-
-#### `Fluent::SetTagKeyMixin` feature
-
-* `include_tag_key`
-
-Alternative:
-
-Use `tag_key` instead, but `include_tag_key` will convert to `tag_key` automatically.
-
-```
-<match **>
-  @type geoip
-  <inject>
-    tag_key tag
-  </inject>
-</match>
-```
-
-#### `Fluent::Mixin::RewriteTagName` feature
+#### Fluent::Mixin::RewriteTagName
 
 * `${tag}`, `__TAG__`
-  * Use `${tag}` placeholder
+
+    Alternative: Use `${tag}` placeholder
+
 * `${tag_parts[n]}`, `__TAG_PARTS[n]__`
-  * Use `${tag[n]}` placeholder
+
+    Alternative: Use `${tag[n]}` placeholder
+
 * `${hostname}`, `__HOSTNAME__`
-    Use inject section and chunk keys:
+
+    Alternative1: Use filter before this plugin and chunk keys:
     ```
+    <filter>
+      @type record_transformer
+      <record>
+        hostname ${hostname}
+      </record>
+    </filter>
     <match **>
       @type geoip
       tag geoip.${tag[1]}.${hostname}
@@ -82,8 +50,19 @@ Use `tag_key` instead, but `include_tag_key` will convert to `tag_key` automatic
       <buffer tag, hostname>
         flush_interval 1s
       </buffer>
+    </match>
+    ```
+
+    Alternative2: Just inject hostname into record you can use `<inject>` section instead:
+    ```
+    <match **>
+      @type geoip
+      tag geoip.${tag[1]}.${hostname}
+      <record>
+        city ${city["host"]}
+      </record>
       <inject>
-        hostname_key hostanme
+        hostname_key hostname
       </inject>
     </match>
     ```
