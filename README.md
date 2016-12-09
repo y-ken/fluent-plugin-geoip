@@ -133,8 +133,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
   </record>
 
   # Settings for tag
-  remove_tag_prefix access.
-  tag               geoip.${tag}
+  tag               geoip.${tag[1]}
 
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
   skip_adding_null_record  true
@@ -142,8 +141,10 @@ $ sudo td-agent-gem install fluent-plugin-geoip
   # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
   log_level         info
 
-  # Set buffering time (default: 0s)
-  flush_interval    1s
+  <buffer tag>
+    # Set buffering time (default: 0s)
+    flush_interval    1s
+  </buffer>
 </match>
 ```
 
@@ -157,8 +158,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
     user1_city      ${city["user1_host"]}
     user2_city      ${city["user2_host"]}
   </record>
-  remove_tag_prefix access.
-  tag               geoip.${tag}
+  tag               geoip.${tag[1]}
 </match>
 ```
 
@@ -185,8 +185,7 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
     # ex. [-122.05740356445312, 37.4192008972168]
     location_array       '[${longitude["host"]},${latitude["host"]}]'
   </record>
-  remove_tag_prefix      access.
-  tag                    geoip.${tag}
+  tag                    geoip.${tag[1]}
 
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
   skip_adding_null_record  true
@@ -270,8 +269,7 @@ Note that filter version of geoip plugin does not have handling tag feature.
       lon     ${longitude["host"]}
       country ${country_code["host"]}
     </record>
-    remove_tag_prefix test.
-    tag     debug.${tag}
+    tag     debug.${tag[1]}
   </store>
 </match>
 
