@@ -8,6 +8,7 @@ module Fluent
     REGEXP_PLACEHOLDER_SCAN = /['"]?(\$\{[^\}]+?\})['"]?/
 
     GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
+    GEOIP2_COMPAT_KEYS = %w(city country_code country_name latitude longitude postal_code region region_name)
 
     attr_reader :log
 
@@ -54,7 +55,14 @@ module Fluent
       @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{ |placeholder| placeholder[0] }.uniq
       @placeholder_keys.each do |key|
         geoip_key = key.match(REGEXP_PLACEHOLDER_SINGLE)[:geoip_key]
-        raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
+        case plugin.backend_library
+        when :geoip
+          raise Fluent::ConfigError, "#{plugin.backend_library}: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
+        when :geoip2_compat
+          raise Fluent::ConfigError, "#{plubin.backend_library}: unsupported key #{geoip_key}" unless GEOIP2_COMPAT_KEYS.include?(geoip_key)
+        when :geoip2_c
+          # TODO implement
+        end
       end
 
       if plugin.is_a?(Fluent::BufferedOutput)
