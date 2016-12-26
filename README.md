@@ -18,13 +18,16 @@ before use, install dependent library as:
 # for RHEL/CentOS
 $ sudo yum group install "Development Tools"
 $ sudo yum install geoip-devel --enablerepo=epel
+$ sudo yum install libmaxminddb-devel --enablerepo=epel
 
 # for Ubuntu/Debian
 $ sudo apt-get install build-essential
 $ sudo apt-get install libgeoip-dev
+$ sudo apt-get install libmaxminddb-dev
 
 # for OS X
 $ brew install geoip
+$ brew install libmaxminddb
 ```
 
 ## Installation
@@ -275,6 +278,8 @@ http://dev.maxmind.com/geoip/legacy/csv/
 
 ## Placeholders
 
+### GeoIP legacy
+
 Provides these placeholders for adding field of geolocate results.<br />
 For more example of geolocating, you can try these websites like [Geo IP Address View](http://www.geoipview.com/) or [View my IP information](http://www.geoiptool.com/en/).
 
@@ -291,6 +296,40 @@ For more example of geolocating, you can try these websites like [Geo IP Address
 | ${region[lookup_field]}        | "NY"              | char(2)      | A two character ISO-3166-2 or FIPS 10-4 code |
 
 Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/#GeoIP_City_Edition_CSV_Database_Fields
+
+### GeoIP2
+
+You can get any fields in the
+[GeoLite2](http://dev.maxmind.com/geoip/geoip2/geolite2/) database and
+[GeoIP2 Downloadable Databases](http://dev.maxmind.com/geoip/geoip2/downloadable/).
+
+For example(geoip2_c backend):
+
+| placeholder attributes                   | output example     | note |
+|------------------------------------------+--------------------+------|
+| ${city.names.en[lookup_field]}           | "Mountain View"    | -    |
+| ${location.latitude[lookup_field]}       | 37.419200000000004 | -    |
+| ${location.longitude[lookup_field]}      | -122.0574          | -    |
+| ${country.iso_code[lookup_field]}        | "US"               | -    |
+| ${country.names.en[lookup_field]}        | "United States"    | -    |
+| ${postal.code[lookup_field]}             | "94043"            | -    |
+| ${subdivisions.0.iso_code[lookup_field]} | "CA"               | -    |
+| ${subdivisions.0.names.en[lookup_field]} | "California"       | -    |
+
+For example(geoip2_compat backend):
+
+| placeholder attributes        | output example     | note |
+|-------------------------------+--------------------+------|
+| ${city[lookup_field]}         | "Mountain View"    | -    |
+| ${latitude[lookup_field]}     | 37.419200000000004 | -    |
+| ${longitude[lookup_field]}    | -122.0574          | -    |
+| ${country_code[lookup_field]} | "US"               | -    |
+| ${country_name[lookup_field]} | "United States"    | -    |
+| ${postal_code[lookup_field]}  | "94043"            |      |
+| ${region[lookup_field]}       | "CA"               | -    |
+| ${region_name[lookup_field]}  | "California"       | -    |
+
+**NOTE**: geoip2_compat backend supports only above fields.
 
 ## Parameters
 
