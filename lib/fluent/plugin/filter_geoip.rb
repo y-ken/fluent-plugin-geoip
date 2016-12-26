@@ -1,3 +1,5 @@
+require 'fluent/plugin/geoip'
+
 module Fluent
   class GeoipFilter < Filter
     Plugin.register_filter('geoip', self)
@@ -14,13 +16,7 @@ module Fluent
     config_param :flush_interval, :time, :default => 0
     config_param :log_level, :string, :default => 'warn'
 
-    config_param :backend_library, :enum, :list => [:geoip, :geoip2_compat, :geoip2_c], :default => :geoip
-
-    def initialize
-      require 'fluent/plugin/geoip'
-
-      super
-    end
+    config_param :backend_library, :enum, :list => Fluent::GeoIP::BACKEND_LIBRARIES, :default => :geoip
 
     def configure(conf)
       super

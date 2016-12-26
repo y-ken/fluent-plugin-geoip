@@ -1,4 +1,5 @@
 require 'fluent/mixin/rewrite_tag_name'
+require 'fluent/plugin/geoip'
 
 class Fluent::GeoipOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('geoip', self)
@@ -19,7 +20,7 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   config_param :flush_interval, :time, :default => 0
   config_param :log_level, :string, :default => 'warn'
 
-  config_param :backend_library, :enum, :list => [:geoip, :geoip2_compat, :geoip2_c], :default => :geoip
+  config_param :backend_library, :enum, :list => Fluent::GeoIP::BACKEND_LIBRARIES, :default => :geoip
 
   # Define `log` method for v0.10.42 or earlier
   unless method_defined?(:log)
@@ -29,12 +30,6 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   # To support Fluentd v0.10.57 or earlier
   unless method_defined?(:router)
     define_method("router") { Fluent::Engine }
-  end
-
-  def initialize
-    require 'fluent/plugin/geoip'
-
-    super
   end
 
   def configure(conf)

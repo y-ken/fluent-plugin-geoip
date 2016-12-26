@@ -4,6 +4,8 @@ require 'dig_rb'
 
 module Fluent
   class GeoIP
+    BACKEND_LIBRARIES = [:geoip, :geoip2_compat, :geoip2_c]
+
     REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\[['"](?<record_key>-?[^'"]+)['"]\]\}$/
     REGEXP_PLACEHOLDER_SCAN = /['"]?(\$\{[^\}]+?\})['"]?/
 
