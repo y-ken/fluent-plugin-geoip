@@ -16,10 +16,22 @@ module Fluent
     config_param :flush_interval, :time, :default => 0
     config_param :log_level, :string, :default => 'warn'
 
-    config_param :backend_library, :enum, :list => Fluent::GeoIP::BACKEND_LIBRARIES, :default => :geoip
+    begin
+      config_param :backend_library, :enum, :list => Fluent::GeoIP::BACKEND_LIBRARIES, :default => :geoip
+    rescue ArgumentError
+      # For v0.10.x
+      config_param :backend_library, :string, :default => 'geoip'
+    end
 
     def configure(conf)
       super
+      # For v0.10.x
+      if @backend_library.is_a?(String)
+        @backend_library = @backend_library.to_sym
+        unless Fluent::GeoIP::BACKEND_LIBRARIES.include?(@backend_library)
+          raise Fluent::ConfigError, "valid options are #{Fluent::GeoIP::BACKEND_LIBRARIES.join(',')} but got #{@backend_library}"
+        end
+      end
       @geoip = Fluent::GeoIP.new(self, conf)
     end
 
