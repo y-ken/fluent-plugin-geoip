@@ -61,7 +61,9 @@ module Fluent
         when :geoip2_compat
           raise Fluent::ConfigError, "#{plubin.backend_library}: unsupported key #{geoip_key}" unless GEOIP2_COMPAT_KEYS.include?(geoip_key)
         when :geoip2_c
-          # TODO implement
+          # Nothing to do.
+          # We cannot define supported key(s) before we fetch values from GeoIP2 database
+          # because geoip2_c can fetch any fields in GeoIP2 database.
         end
       end
 
