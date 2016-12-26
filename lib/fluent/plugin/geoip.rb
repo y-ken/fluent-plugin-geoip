@@ -74,14 +74,7 @@ module Fluent
         end
       end
 
-      @geoip = case plugin.backend_library
-               when :geoip
-                 ::GeoIP::City.new(plugin.geoip_database, :memory, false)
-               when :geoip2_compat
-                 GeoIP2Compat.new(plugin.geoip2_database)
-               when :geoip2_c
-                 GeoIP2::Database.new(plugin.geoip2_database)
-               end
+      @geoip = load_database(plugin)
     end
 
     def add_geoip_field(record)
@@ -164,6 +157,21 @@ module Fluent
         placeholder[placeholder_key] = geodata.dig(*keys)
       end
       placeholder
+    end
+
+    def load_database(plugin)
+      case plugin.backend_library
+      when :geoip
+        ::GeoIP::City.new(plugin.geoip_database, :memory, false)
+      when :geoip2_compat
+        require 'geoip2_compat'
+        GeoIP2Compat.new(plugin.geoip2_database)
+      when :geoip2_c
+        require 'geoip2'
+        GeoIP2::Database.new(plugin.geoip2_database)
+      end
+    rescue LoadError
+      raise Fluent::ConfigError, "You must install #{plugin.backend_library} gem."
     end
   end
 end
