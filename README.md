@@ -306,7 +306,7 @@ You can get any fields in the
 For example(geoip2_c backend):
 
 | placeholder attributes                   | output example     | note |
-|------------------------------------------+--------------------+------|
+|------------------------------------------|--------------------|------|
 | ${city.names.en[lookup_field]}           | "Mountain View"    | -    |
 | ${location.latitude[lookup_field]}       | 37.419200000000004 | -    |
 | ${location.longitude[lookup_field]}      | -122.0574          | -    |
@@ -319,7 +319,7 @@ For example(geoip2_c backend):
 For example(geoip2_compat backend):
 
 | placeholder attributes        | output example     | note |
-|-------------------------------+--------------------+------|
+|-------------------------------|--------------------|------|
 | ${city[lookup_field]}         | "Mountain View"    | -    |
 | ${latitude[lookup_field]}     | 37.419200000000004 | -    |
 | ${longitude[lookup_field]}    | -122.0574          | -    |
