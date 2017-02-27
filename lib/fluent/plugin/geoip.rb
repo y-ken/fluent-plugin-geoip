@@ -1,12 +1,16 @@
 require 'geoip'
 require 'yajl'
+require 'dig_rb'
 
 module Fluent
   class GeoIP
+    BACKEND_LIBRARIES = [:geoip, :geoip2_compat, :geoip2_c]
+
     REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\[['"](?<record_key>-?[^'"]+)['"]\]\}$/
     REGEXP_PLACEHOLDER_SCAN = /['"]?(\$\{[^\}]+?\})['"]?/
 
     GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
+    GEOIP2_COMPAT_KEYS = %w(city country_code country_name latitude longitude postal_code region region_name)
 
     attr_reader :log
 
@@ -25,7 +29,7 @@ module Fluent
           if record_key.nil?
             raise Fluent::ConfigError, "geoip: missing value found at '#{key} #{lookup_field}'"
           end
-          @map.store(record_key, "${#{geoip_key}['#{lookup_field}']}")
+          @map[record_key] = "${#{geoip_key}['#{lookup_field}']}"
         end
       end
       if conf.keys.select{|k| k =~ /^enable_key_/}.size > 0
@@ -53,7 +57,16 @@ module Fluent
       @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{ |placeholder| placeholder[0] }.uniq
       @placeholder_keys.each do |key|
         geoip_key = key.match(REGEXP_PLACEHOLDER_SINGLE)[:geoip_key]
-        raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
+        case plugin.backend_library
+        when :geoip
+          raise Fluent::ConfigError, "#{plugin.backend_library}: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
+        when :geoip2_compat
+          raise Fluent::ConfigError, "#{plubin.backend_library}: unsupported key #{geoip_key}" unless GEOIP2_COMPAT_KEYS.include?(geoip_key)
+        when :geoip2_c
+          # Nothing to do.
+          # We cannot define supported key(s) before we fetch values from GeoIP2 database
+          # because geoip2_c can fetch any fields in GeoIP2 database.
+        end
       end
 
       if plugin.is_a?(Fluent::BufferedOutput)
@@ -63,7 +76,7 @@ module Fluent
         end
       end
 
-      @geoip = ::GeoIP::City.new(plugin.geoip_database, :memory, false)
+      @geoip = load_database(plugin)
     end
 
     def add_geoip_field(record)
@@ -81,7 +94,7 @@ module Fluent
         else
           rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN, placeholder)
         end
-        record.store(record_key, rewrited)
+        record[record_key] = rewrited
       end
       return record
     end
@@ -116,25 +129,25 @@ module Fluent
     def get_address(record)
       address = {}
       @geoip_lookup_key.each do |field|
-        address.store(field, record[field]); next if not record[field].nil?
-        key = field.split('.')
-        obj = record
-        key.each {|k|
-          break obj = nil if not obj.has_key?(k)
-          obj = obj[k]
-        }
-        address.store(field, obj)
+        address[field] = record[field] || record.dig(*field.split('.'))
       end
-      return address
+      address
     end
 
     def geolocate(addresses)
       geodata = {}
       addresses.each do |field, ip|
-        geo = ip.nil? ? nil : @geoip.look_up(ip)
-        geodata.store(field, geo)
+        geo = nil
+        if ip
+          geo = if @geoip.respond_to?(:look_up)
+                  @geoip.look_up(ip)
+                else
+                  @geoip.lookup(ip)
+                end
+        end
+        geodata[field] = geo
       end
-      return geodata
+      geodata
     end
 
     def create_placeholder(geodata)
@@ -142,9 +155,25 @@ module Fluent
       @placeholder_keys.each do |placeholder_key|
         position = placeholder_key.match(REGEXP_PLACEHOLDER_SINGLE)
         next if position.nil? or geodata[position[:record_key]].nil?
-        placeholder.store(placeholder_key, geodata[position[:record_key]][position[:geoip_key].to_sym])
+        keys = [position[:record_key]] + position[:geoip_key].split('.').map(&:to_sym)
+        placeholder[placeholder_key] = geodata.dig(*keys)
       end
-      return placeholder
+      placeholder
+    end
+
+    def load_database(plugin)
+      case plugin.backend_library
+      when :geoip
+        ::GeoIP::City.new(plugin.geoip_database, :memory, false)
+      when :geoip2_compat
+        require 'geoip2_compat'
+        GeoIP2Compat.new(plugin.geoip2_database)
+      when :geoip2_c
+        require 'geoip2'
+        GeoIP2::Database.new(plugin.geoip2_database)
+      end
+    rescue LoadError
+      raise Fluent::ConfigError, "You must install #{plugin.backend_library} gem."
     end
   end
 end
