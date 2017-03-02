@@ -7,11 +7,6 @@ class GeoipFilterTest < Test::Unit::TestCase
     @time = Fluent::Engine.now
   end
 
-  CONFIG = %[
-    geoip_lookup_key  host
-    enable_key_city   geoip_city
-  ]
-
   def create_driver(conf=CONFIG, tag='test', use_v1=false)
     Fluent::Test::FilterTestDriver.new(Fluent::GeoipFilter, tag).configure(conf, use_v1)
   end
@@ -26,6 +21,11 @@ class GeoipFilterTest < Test::Unit::TestCase
     filtered = d.filtered_as_array
     filtered.map {|m| m[2] }
   end
+
+  CONFIG = %[
+    geoip_lookup_key  host
+    enable_key_city   geoip_city
+  ]
 
   def test_configure
     assert_nothing_raised {

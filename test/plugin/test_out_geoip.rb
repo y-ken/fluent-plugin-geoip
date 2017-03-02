@@ -5,13 +5,6 @@ class GeoipOutputTest < Test::Unit::TestCase
     Fluent::Test.setup
   end
 
-  CONFIG = %[
-    geoip_lookup_key  host
-    enable_key_city   geoip_city
-    remove_tag_prefix input.
-    tag               geoip.${tag}
-  ]
-
   def create_driver(conf=CONFIG,tag='test',use_v1=false)
     require 'fluent/version'
     if Gem::Version.new(Fluent::VERSION) < Gem::Version.new('0.12')
@@ -20,6 +13,13 @@ class GeoipOutputTest < Test::Unit::TestCase
       Fluent::Test::BufferedOutputTestDriver.new(Fluent::GeoipOutput, tag).configure(conf, use_v1)
     end
   end
+
+  CONFIG = %[
+    geoip_lookup_key  host
+    enable_key_city   geoip_city
+    remove_tag_prefix input.
+    tag               geoip.${tag}
+  ]
 
   def test_configure
     assert_raise(Fluent::ConfigError) {
