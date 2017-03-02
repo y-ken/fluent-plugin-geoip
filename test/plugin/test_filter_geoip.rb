@@ -22,6 +22,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     filtered.map {|m| m[2] }
   end
 
+  sub_test_case "geoip legacy" do
   CONFIG = %[
     geoip_lookup_key  host
     enable_key_city   geoip_city
@@ -417,6 +418,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     ]
     filtered = filter(config, messages, true)
     assert_equal(expected, filtered)
+  end
   end
 end
 

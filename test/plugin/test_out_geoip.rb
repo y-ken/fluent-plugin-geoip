@@ -14,6 +14,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     end
   end
 
+  sub_test_case "geoip legacy" do
   CONFIG = %[
     geoip_lookup_key  host
     enable_key_city   geoip_city
@@ -441,5 +442,5 @@ class GeoipOutputTest < Test::Unit::TestCase
     location_properties = { "city"=>"Mountain View", "country_code"=>"US", "latitude"=>37.4192008972168, "longitude"=>-122.05740356445312 }
     assert_equal location_properties, emits[0][2]['location_properties']
   end
+  end
 end
-
