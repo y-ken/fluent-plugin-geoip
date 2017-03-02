@@ -10,8 +10,6 @@ class GeoipFilterTest < Test::Unit::TestCase
   CONFIG = %[
     geoip_lookup_key  host
     enable_key_city   geoip_city
-    remove_tag_prefix input.
-    tag               geoip.${tag}
   ]
 
   def create_driver(conf=CONFIG, tag='test', use_v1=false)
@@ -38,8 +36,6 @@ class GeoipFilterTest < Test::Unit::TestCase
     }
     d = create_driver %[
       enable_key_city   geoip_city
-      remove_tag_prefix input.
-      tag               geoip.${tag}
     ]
     assert_equal 'geoip_city', d.instance.config['enable_key_city']
 
@@ -47,8 +43,6 @@ class GeoipFilterTest < Test::Unit::TestCase
     d = create_driver %[
       geoip_lookup_key  from.ip, to.ip
       enable_key_city   from_city, to_city
-      remove_tag_prefix input.
-      tag               geoip.${tag}
     ]
     assert_equal 'from_city, to_city', d.instance.config['enable_key_city']
 
@@ -58,8 +52,6 @@ class GeoipFilterTest < Test::Unit::TestCase
         geoip_lookup_key  from.ip, to.ip
         enable_key_city   from_city
         enable_key_region from_region
-        remove_tag_prefix input.
-        tag               geoip.${tag}
       ]
     }
 
@@ -70,8 +62,6 @@ class GeoipFilterTest < Test::Unit::TestCase
         <record>
           invalid_json    {"foo" => 123}
         </record>
-        remove_tag_prefix input.
-        tag               geoip.${tag}
       ]
     }
     assert_raise(Fluent::ConfigError) {
@@ -80,8 +70,6 @@ class GeoipFilterTest < Test::Unit::TestCase
         <record>
           invalid_json    {"foo" : string, "bar" : 123}
         </record>
-        remove_tag_prefix input.
-        tag               geoip.${tag}
       ]
     }
   end
@@ -353,8 +341,6 @@ class GeoipFilterTest < Test::Unit::TestCase
       location_array2      '[${longitude["host"]},${latitude["host"]}]'
       peculiar_pattern     '[GEOIP] message => {"lat":${latitude["host"]}, "lon":${longitude["host"]}}'
     </record>
-    remove_tag_prefix input.
-    tag               geoip.${tag}
   ]
 
   def test_filter_quoted_record
