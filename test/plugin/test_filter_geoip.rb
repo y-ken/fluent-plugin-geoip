@@ -81,6 +81,29 @@ class GeoipFilterTest < Test::Unit::TestCase
         ]
       }
     end
+
+    data(geoip: ["geoip", '${city["host"]}'],
+         geoip2_compat: ["geoip2_compat", '${city["host"]}'],
+         geoip2_c: ["geoip2_c", '${city.names.en["host"]}'])
+    test "supported backend" do |(backend, placeholder)|
+      create_driver %[
+        backend_library #{backend}
+        <record>
+          city #{placeholder}
+        </record>
+      ]
+    end
+
+    test "unsupported backend" do
+      assert_raise(Fluent::ConfigError) do
+        create_driver %[
+          backend_library hive_geoip2
+          <record>
+            city ${city["host"]}
+          </record>
+        ]
+      end
+    end
   end
 
   sub_test_case "geoip legacy" do
