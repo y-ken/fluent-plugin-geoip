@@ -278,7 +278,7 @@ class GeoipFilterTest < Test::Unit::TestCase
           'to' => { 'ip' => '125.54.15.42' },
           'from_city' => 'Mountain View',
           'from_country' => 'United States',
-          'to_city' => 'Wako',
+          'to_city' => 'Tokorozawa',
           'to_country' => 'Japan',
           'string_array' => ['United States', 'Japan']
         },
@@ -547,7 +547,7 @@ class GeoipFilterTest < Test::Unit::TestCase
           'to' => { 'ip' => '125.54.15.42' },
           'from_city' => 'Mountain View',
           'from_country' => 'United States',
-          'to_city' => 'Wako',
+          'to_city' => 'Tokorozawa',
           'to_country' => 'Japan',
           'string_array' => ['United States', 'Japan']
         },

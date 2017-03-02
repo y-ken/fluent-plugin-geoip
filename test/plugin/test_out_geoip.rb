@@ -333,7 +333,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal 'geoip.access', emits[0][0] # tag
       assert_equal 'Mountain View', emits[0][2]['from_city']
       assert_equal 'United States', emits[0][2]['from_country']
-      assert_equal 'Wako', emits[0][2]['to_city']
+      assert_equal 'Tokorozawa', emits[0][2]['to_city']
       assert_equal 'Japan', emits[0][2]['to_country']
       assert_equal ['United States','Japan'], emits[0][2]['string_array']
 
@@ -627,7 +627,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal 'geoip.access', emits[0][0] # tag
       assert_equal 'Mountain View', emits[0][2]['from_city']
       assert_equal 'United States', emits[0][2]['from_country']
-      assert_equal 'Wako', emits[0][2]['to_city']
+      assert_equal 'Tokorozawa', emits[0][2]['to_city']
       assert_equal 'Japan', emits[0][2]['to_country']
       assert_equal ['United States','Japan'], emits[0][2]['string_array']
 
