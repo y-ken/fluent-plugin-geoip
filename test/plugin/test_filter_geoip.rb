@@ -106,6 +106,275 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
   end
 
+  sub_test_case "geoip2_c" do
+    def test_filter_with_dot_key
+      config = %[
+        backend_library   geoip2_c
+        geoip_lookup_key  ip.origin, ip.dest
+        <record>
+          origin_country  ${country.iso_code['ip.origin']}
+          dest_country    ${country.iso_code['ip.dest']}
+        </record>
+      ]
+      messages = [
+        {'ip.origin' => '66.102.3.80', 'ip.dest' => '8.8.8.8'}
+      ]
+      expected = [
+        {'ip.origin' => '66.102.3.80', 'ip.dest' => '8.8.8.8',
+         'origin_country' => 'US', 'dest_country' => 'US'}
+      ]
+      filtered = filter(config, messages)
+      assert_equal(expected, filtered)
+    end
+
+    def test_filter_with_unknown_address
+      config = %[
+        backend_library   geoip2_c
+        geoip_lookup_key  host
+        <record>
+          geoip_city      ${city.names.en['host']}
+          geopoint        [${location.longitude['host']}, ${location.latitude['host']}]
+        </record>
+        skip_adding_null_record false
+      ]
+      # 203.0.113.1 is a test address described in RFC5737
+      messages = [
+        {'host' => '203.0.113.1', 'message' => 'invalid ip'},
+        {'host' => '0', 'message' => 'invalid ip'}
+      ]
+      expected = [
+        {'host' => '203.0.113.1', 'message' => 'invalid ip', 'geoip_city' => nil, 'geopoint' => [nil, nil]},
+        {'host' => '0', 'message' => 'invalid ip', 'geoip_city' => nil, 'geopoint' => [nil, nil]}
+      ]
+      filtered = filter(config, messages)
+      assert_equal(expected, filtered)
+    end
+
+    def test_filter_with_skip_unknown_address
+      config = %[
+        backend_library   geoip2_c
+        geoip_lookup_key  host
+        <record>
+          geoip_city      ${city.names.en['host']}
+          geopoint        [${location.longitude['host']}, ${location.latitude['host']}]
+        </record>
+        skip_adding_null_record true
+      ]
+      # 203.0.113.1 is a test address described in RFC5737
+      messages = [
+        {'host' => '203.0.113.1', 'message' => 'invalid ip'},
+        {'host' => '0', 'message' => 'invalid ip'},
+        {'host' => '8.8.8.8', 'message' => 'google public dns'}
+      ]
+      expected = [
+        {'host' => '203.0.113.1', 'message' => 'invalid ip'},
+        {'host' => '0', 'message' => 'invalid ip'},
+        {'host' => '8.8.8.8', 'message' => 'google public dns',
+         'geoip_city' => 'Mountain View', 'geopoint' => [-122.0838, 37.386]}
+      ]
+      filtered = filter(config, messages)
+      assert_equal(expected, filtered)
+    end
+
+    def test_filter_record_directive
+      config = %[
+        backend_library   geoip2_c
+        geoip_lookup_key  from.ip
+        <record>
+          from_city       ${city.names.en['from.ip']}
+          from_country    ${country.names.en['from.ip']}
+          latitude        ${location.latitude['from.ip']}
+          longitude       ${location.longitude['from.ip']}
+          float_concat    ${location.latitude['from.ip']},${location.longitude['from.ip']}
+          float_array     [${location.longitude['from.ip']}, ${location.latitude['from.ip']}]
+          float_nest      { "lat" : ${location.latitude['from.ip']}, "lon" : ${location.longitude['from.ip']}}
+          string_concat   ${city.names.en['from.ip']},${country.names.en['from.ip']}
+          string_array    [${city.names.en['from.ip']}, ${country.names.en['from.ip']}]
+          string_nest     { "city" : ${city.names.en['from.ip']}, "country_name" : ${country.names.en['from.ip']}}
+          unknown_city    ${city.names.en['unknown_key']}
+          undefined       ${city.names.en['undefined']}
+          broken_array1   [${location.longitude['from.ip']}, ${location.latitude['undefined']}]
+          broken_array2   [${location.longitude['undefined']}, ${location.latitude['undefined']}]
+        </record>
+      ]
+      messages = [
+        { 'from' => {'ip' => '66.102.3.80'} },
+        { 'message' => 'missing field' },
+      ]
+      expected = [
+        {
+          'from' => {'ip' => '66.102.3.80'},
+          'from_city' => 'Mountain View',
+          'from_country' => 'United States',
+          'latitude' => 37.419200000000004,
+          'longitude' => -122.0574,
+          'float_concat' => '37.419200000000004,-122.0574',
+          'float_array' => [-122.0574, 37.419200000000004],
+          'float_nest' => { 'lat' => 37.4192000000000004, 'lon' => -122.0574 },
+          'string_concat' => 'Mountain View,United States',
+          'string_array' => ["Mountain View", "United States"],
+          'string_nest' => {"city" => "Mountain View", "country_name" => "United States"},
+          'unknown_city' => nil,
+          'undefined' => nil,
+          'broken_array1' => [-122.0574, nil],
+          'broken_array2' => [nil, nil]
+        },
+        {
+          'message' => 'missing field',
+          'from_city' => nil,
+          'from_country' => nil,
+          'latitude' => nil,
+          'longitude' => nil,
+          'float_concat' => ',',
+          'float_array' => [nil, nil],
+          'float_nest' => { 'lat' => nil, 'lon' => nil },
+          'string_concat' => ',',
+          'string_array' => [nil, nil],
+          'string_nest' => { "city" => nil, "country_name" => nil },
+          'unknown_city' => nil,
+          'undefined' => nil,
+          'broken_array1' => [nil, nil],
+          'broken_array2' => [nil, nil]
+        },
+      ]
+      filtered = filter(config, messages)
+      # test-unit cannot calculate diff between large Array
+      assert_equal(expected[0], filtered[0])
+      assert_equal(expected[1], filtered[1])
+    end
+
+    def test_filter_record_directive_multiple_record
+      config = %[
+        backend_library   geoip2_c
+        geoip_lookup_key  from.ip, to.ip
+        <record>
+          from_city       ${city.names.en['from.ip']}
+          to_city         ${city.names.en['to.ip']}
+          from_country    ${country.names.en['from.ip']}
+          to_country      ${country.names.en['to.ip']}
+          string_array    [${country.names.en['from.ip']}, ${country.names.en['to.ip']}]
+        </record>
+      ]
+      messages = [
+        {'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}},
+        {'message' => 'missing field'}
+      ]
+      expected = [
+        {
+          'from' => { 'ip' => '66.102.3.80' },
+          'to' => { 'ip' => '125.54.15.42' },
+          'from_city' => 'Mountain View',
+          'from_country' => 'United States',
+          'to_city' => 'Wako',
+          'to_country' => 'Japan',
+          'string_array' => ['United States', 'Japan']
+        },
+        {
+          'message' => 'missing field',
+          'from_city' => nil,
+          'from_country' => nil,
+          'to_city' => nil,
+          'to_country' => nil,
+          'string_array' => [nil, nil]
+        }
+      ]
+      filtered = filter(config, messages)
+      assert_equal(expected, filtered)
+    end
+
+    def config_quoted_record
+      %[
+        backend_library   geoip2_c
+        geoip_lookup_key  host
+        <record>
+          location_properties  '{ "country_code" : "${country.iso_code["host"]}", "lat": ${location.latitude["host"]}, "lon": ${location.longitude["host"]} }'
+          location_string      ${location.latitude['host']},${location.longitude['host']}
+          location_string2     ${country.iso_code["host"]}
+          location_array       "[${location.longitude['host']},${location.latitude['host']}]"
+          location_array2      '[${location.longitude["host"]},${location.latitude["host"]}]'
+          peculiar_pattern     '[GEOIP] message => {"lat":${location.latitude["host"]}, "lon":${location.longitude["host"]}}'
+        </record>
+      ]
+    end
+
+    def test_filter_quoted_record
+      messages = [
+        {'host' => '66.102.3.80', 'message' => 'valid ip'}
+      ]
+      expected = [
+        {
+          'host' => '66.102.3.80', 'message' => 'valid ip',
+          'location_properties' => {
+            'country_code' => 'US',
+            'lat' => 37.419200000000004,
+            'lon' => -122.0574
+          },
+          'location_string' => '37.419200000000004,-122.0574',
+          'location_string2' => 'US',
+          'location_array' => [-122.0574, 37.419200000000004],
+          'location_array2' => [-122.0574, 37.419200000000004],
+          'peculiar_pattern' => '[GEOIP] message => {"lat":37.419200000000004, "lon":-122.0574}'
+        }
+      ]
+      filtered = filter(config_quoted_record, messages)
+      assert_equal(expected, filtered)
+    end
+
+    def test_filter_v1_config_compatibility
+      messages = [
+        {'host' => '66.102.3.80', 'message' => 'valid ip'}
+      ]
+      expected = [
+        {
+          'host' => '66.102.3.80', 'message' => 'valid ip',
+          'location_properties' => {
+            'country_code' => 'US',
+            'lat' => 37.419200000000004,
+            'lon' => -122.0574
+          },
+          'location_string' => '37.419200000000004,-122.0574',
+          'location_string2' => 'US',
+          'location_array' => [-122.0574, 37.419200000000004],
+          'location_array2' => [-122.0574, 37.419200000000004],
+          'peculiar_pattern' => '[GEOIP] message => {"lat":37.419200000000004, "lon":-122.0574}'
+        }
+      ]
+      filtered = filter(config_quoted_record, messages, true)
+      assert_equal(expected, filtered)
+    end
+
+    def test_filter_multiline_v1_config
+      config = %[
+        backend_library   geoip2_c
+        geoip_lookup_key  host
+        <record>
+          location_properties  {
+            "city": "${city.names.en['host']}",
+            "country_code": "${country.iso_code['host']}",
+            "latitude": "${location.latitude['host']}",
+            "longitude": "${location.longitude['host']}"
+        }
+        </record>
+      ]
+      messages = [
+        { 'host' => '66.102.3.80', 'message' => 'valid ip' }
+      ]
+      expected = [
+        {
+          'host' => '66.102.3.80', 'message' => 'valid ip',
+          "location_properties" => {
+            "city" => "Mountain View",
+            "country_code" => "US",
+            "latitude" => 37.419200000000004,
+            "longitude" => -122.0574
+          }
+        }
+      ]
+      filtered = filter(config, messages, true)
+      assert_equal(expected, filtered)
+    end
+  end
+
   sub_test_case "geoip2_compat" do
     def test_filter_with_dot_key
       config = %[
