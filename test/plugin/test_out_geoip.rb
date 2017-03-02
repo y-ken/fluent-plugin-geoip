@@ -24,10 +24,10 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_configure
       assert_raise(Fluent::ConfigError) {
-        d = create_driver('')
+        create_driver('')
       }
       assert_raise(Fluent::ConfigError) {
-        d = create_driver('enable_key_cities')
+        create_driver('enable_key_cities')
       }
       d = create_driver %[
         enable_key_city   geoip_city
