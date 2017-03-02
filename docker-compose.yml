@@ -1,0 +1,31 @@
+version: "2"
+services:
+  test-ruby2.4:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile-ruby2.4
+    env_file:
+      - env
+    command: ruby -run -e httpd .
+  test-ruby2.3:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile-ruby2.3
+    env_file:
+      - env
+    command: ruby -run -e httpd .
+  test-ruby2.2:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile-ruby2.2
+    env_file:
+      - env
+    command: ruby -run -e httpd .
+  test-ruby2.1:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile-ruby2.1
+    env_file:
+      - env
+    command: ruby -run -e httpd .
+

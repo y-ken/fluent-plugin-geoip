@@ -1,28 +1,41 @@
 sudo: required
-language: ruby
+services:
+  - docker
 
-rvm:
-  - 2.3.1
-  - 2.2
-  - 2.1
+env:
+  global:
+    DOCKER_COMPOSE_VERSION: 1.8.1
+  matrix:
+    - TARGET_RUBY_VERSION=2.1 BUNDLE_GEMFILE=/app/Gemfile
+    - TARGET_RUBY_VERSION=2.2 BUNDLE_GEMFILE=/app/Gemfile
+    - TARGET_RUBY_VERSION=2.3 BUNDLE_GEMFILE=/app/Gemfile
+    - TARGET_RUBY_VERSION=2.4 BUNDLE_GEMFILE=/app/Gemfile
+    - TARGET_RUBY_VERSION=2.1 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
+    - TARGET_RUBY_VERSION=2.2 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
+    - TARGET_RUBY_VERSION=2.3 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
+    - TARGET_RUBY_VERSION=2.4 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
+    # - TARGET_RUBY_VERSION=2.1 GEMFILE=/app/gemfiles/fluentd_v0.10.gemfile
+    # - TARGET_RUBY_VERSION=2.2 GEMFILE=/app/gemfiles/fluentd_v0.10.gemfile
+    # - TARGET_RUBY_VERSION=2.3 GEMFILE=/app/gemfiles/fluentd_v0.10.gemfile
+    # - TARGET_RUBY_VERSION=2.4 GEMFILE=/app/gemfiles/fluentd_v0.10.gemfile
 
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install libgeoip-dev
-  - gem update bundler
+  #- sudo apt-get update
+  #- sudo apt-get install -y docker-engine
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m) > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin/
+  - test -f data/GeoLite2-City.mmdb || curl http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz | gunzip > data/GeoLite2-City.mmdb
 
-gemfile:
-  - Gemfile
-  - gemfiles/fluentd_v0.10.gemfile
-  - gemfiles/fluentd_v0.12.gemfile
+install: true
 
-matrix:
-  include:
-    - rvm: 1.9.3
-      gemfile: gemfiles/fluentd_v0.10.gemfile
-    - rvm: 2.0.0
-      gemfile: gemfiles/fluentd_v0.10.gemfile
-  allow_failures:
-    - gemfile: gemfiles/fluentd_v0.10.gemfile
-    - rvm: 1.9.3
-    - rvm: 2.0.0
+before_script:
+  - echo BUNDLE_GEMFILE=${BUNDLE_GEMFILE} > env
+  - docker-compose build test-ruby${TARGET_RUBY_VERSION}
+  - docker-compose ps
+  - docker-compose up -d test-ruby${TARGET_RUBY_VERSION}
+  - docker-compose exec test-ruby${TARGET_RUBY_VERSION} bundle install
+
+script:
+  - docker-compose exec test-ruby${TARGET_RUBY_VERSION} bundle exec rake test

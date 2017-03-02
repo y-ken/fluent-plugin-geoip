@@ -1,0 +1,8 @@
+FROM ruby:2.1-alpine
+
+ENV BUNDLE_GEMFILE=$BUNDLE_GEMFILE
+
+RUN apk --no-cache --update add build-base ruby-dev libc6-compat libmaxminddb-dev geoip-dev git
+
+WORKDIR /app
+COPY . .
