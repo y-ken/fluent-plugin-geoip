@@ -14,10 +14,6 @@ env:
     - TARGET_RUBY_VERSION=2.2 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
     - TARGET_RUBY_VERSION=2.3 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
     - TARGET_RUBY_VERSION=2.4 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
-    # - TARGET_RUBY_VERSION=2.1 GEMFILE=/app/gemfiles/fluentd_v0.10.gemfile
-    # - TARGET_RUBY_VERSION=2.2 GEMFILE=/app/gemfiles/fluentd_v0.10.gemfile
-    # - TARGET_RUBY_VERSION=2.3 GEMFILE=/app/gemfiles/fluentd_v0.10.gemfile
-    # - TARGET_RUBY_VERSION=2.4 GEMFILE=/app/gemfiles/fluentd_v0.10.gemfile
 
 before_install:
   #- sudo apt-get update
