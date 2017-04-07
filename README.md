@@ -10,7 +10,12 @@ The accuracy details for GeoLite City (free) and GeoIP City (purchased) has desc
 * http://www.maxmind.com/en/geolite_city_accuracy ([lang:ja](http://www.maxmind.com/ja/geolite_city_accuracy))
 * http://www.maxmind.com/en/city_accuracy ([lang:ja](http://www.maxmind.com/ja/city_accuracy))
 
-## Notice
+## Requirements
+
+| fluent-plugin-geoip | fluentd    | ruby   |
+|---------------------|------------|--------|
+| >= 1.0.0            | >= v0.14.0 | >= 2.1 |
+| < 1.0.0             | >= v0.12.0 | >= 1.9 |
 
 If you want to use this plugin with Fluentd v0.12.x or earlier use 0.6.x.
 
