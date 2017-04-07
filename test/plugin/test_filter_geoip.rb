@@ -66,7 +66,8 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
 
     test "invalid json structure w/ Ruby hash like" do
-      assert_raise(Fluent::ConfigError) {
+
+      assert_raise(Fluent::ConfigParseError) {
         create_driver %[
           geoip_lookup_key  host
           <record>
@@ -77,7 +78,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
 
     test "invalid json structure w/ unquoted string literal" do
-      assert_raise(Fluent::ConfigError) {
+      assert_raise(Fluent::ConfigParseError) {
         create_driver %[
           geoip_lookup_key  host
           <record>
