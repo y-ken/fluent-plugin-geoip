@@ -51,7 +51,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
 ```xml
 <match access.apache>
-  type geoip
+  @type geoip
 
   # Specify one or more geoip lookup field which has ip address (default: host)
   # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
@@ -92,7 +92,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
 ```xml
 <match access.apache>
-  type geoip
+  @type geoip
   geoip_lookup_key  user1_host, user2_host
   <record>
     user1_city      ${city["user1_host"]}
@@ -110,12 +110,12 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
 
 ```
 <match access.apache>
-  type                   geoip
+  @type                  geoip
   geoip_lookup_key       host
   <record>
     # lat lon as properties
     # ex. {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
-    location_properties  { "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }
+    location_properties  '{ "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }'
   
     # lat lon as string
     # ex. "37.4192008972168,-122.05740356445312"
@@ -123,7 +123,7 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
     
     # GeoJSON (lat lon as array) is useful for Kibana's bettermap.
     # ex. [-122.05740356445312, 37.4192008972168]
-    location_array       [${longitude["host"]},${latitude["host"]}]
+    location_array       '[${longitude["host"]},${latitude["host"]}]'
   </record>
   remove_tag_prefix      access.
   tag                    geoip.${tag}
@@ -137,7 +137,7 @@ On the case of using td-agent2 (v1-config), it have to quote `{ ... }` or `[ ...
 
 ```
 <match access.apache>
-  type                   geoip
+  @type                  geoip
   geoip_lookup_key       host
   <record>
     location_properties  '{ "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }'
@@ -197,16 +197,16 @@ Note that filter version of geoip plugin does not have handling tag feature.
 
 ```xml
 <source>
-  type forward
+  @type forward
 </source>
 
 <match test.geoip>
-  type copy
+  @type copy
   <store>
-    type stdout
+    @type stdout
   </store>
   <store>
-    type    geoip
+    @type    geoip
     geoip_lookup_key  host
     <record>
       lat     ${latitude["host"]}
@@ -219,7 +219,7 @@ Note that filter version of geoip plugin does not have handling tag feature.
 </match>
 
 <match debug.**>
-  type stdout
+  @type stdout
 </match>
 ```
 
