@@ -123,6 +123,10 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
   geoip_database    "/path/to/your/GeoIPCity.dat"
+  # Specify optional geoip2 database
+  # geoip2_database   "/path/to/your/GeoLite2-City.mmdb"
+  # Specify backend library (geoip, geoip2_compat, geoip2_c)
+  backend_library geoip
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
@@ -228,6 +232,10 @@ Note that filter version of geoip plugin does not have handling tag feature.
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
   geoip_database    "/path/to/your/GeoIPCity.dat"
+  # Specify optional geoip2 database
+  # geoip2_database   "/path/to/your/GeoLite2-City.mmdb"
+  # Specify backend library (geoip, geoip2_compat, geoip2_c)
+  backend_library geoip
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
@@ -357,6 +365,11 @@ For more example of geolocating, you can try these websites like [Geo IP Address
 
 Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/#GeoIP_City_Edition_CSV_Database_Fields
 
+Related configurations:
+
+* `backend_library`: `geoip` (default)
+* `geoip_database`: path to your GeoLiteCity.dat
+
 ### GeoIP2
 
 You can get any fields in the
@@ -390,6 +403,11 @@ For example(geoip2_compat backend):
 | ${region_name[lookup_field]}  | "California"       | -    |
 
 **NOTE**: geoip2_compat backend supports only above fields.
+
+Related configurations:
+
+* `backend_library`: `geoip2_compat` or `geoip2_c`
+* `geoip2_database`: path to your GeoLite2-City.mmdb
 
 ## Parameters
 
