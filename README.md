@@ -115,7 +115,7 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
   <record>
     # lat lon as properties
     # ex. {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
-    location_properties  { "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }
+    location_properties  '{ "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }'
   
     # lat lon as string
     # ex. "37.4192008972168,-122.05740356445312"
@@ -123,7 +123,7 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
     
     # GeoJSON (lat lon as array) is useful for Kibana's bettermap.
     # ex. [-122.05740356445312, 37.4192008972168]
-    location_array       [${longitude["host"]},${latitude["host"]}]
+    location_array       '[${longitude["host"]},${latitude["host"]}]'
   </record>
   remove_tag_prefix      access.
   tag                    geoip.${tag}
