@@ -28,6 +28,8 @@ $ sudo apt-get install libmaxminddb-dev
 # for OS X
 $ brew install geoip
 $ brew install libmaxminddb
+$ bundle config build.geoip-c --with-geoip-dir=/usr/local/include/
+$ bundle config build.geoip2_c --with-opt-include=/usr/local/include/
 ```
 
 ## Installation
