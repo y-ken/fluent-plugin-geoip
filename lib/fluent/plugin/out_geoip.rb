@@ -9,6 +9,8 @@ class Fluent::GeoipOutput < Fluent::BufferedOutput
   config_param :geoip_lookup_key, :string, :default => 'host'
   config_param :tag, :string, :default => nil
   config_param :skip_adding_null_record, :bool, :default => false
+  config_param :database_refresh_check, :bool, :default => false
+  config_param :database_read_type, :string, :default => 'memory'
 
   include Fluent::HandleTagNameMixin
   include Fluent::SetTagKeyMixin

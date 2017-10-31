@@ -8,6 +8,8 @@ module Fluent
     config_param :geoip2_database, :string, :default => File.dirname(__FILE__) + '/../../../data/GeoLite2-City.mmdb'
     config_param :geoip_lookup_key, :string, :default => 'host'
     config_param :skip_adding_null_record, :bool, :default => false
+    config_param :database_refresh_check, :bool, :default => false
+    config_param :database_read_type, :string, :default => 'memory'
 
     config_set_default :include_tag_key, false
 
