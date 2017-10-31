@@ -5,7 +5,7 @@ class GeoipOutputTest < Test::Unit::TestCase
     Fluent::Test.setup
   end
 
-  def create_driver(conf='',tag='test',use_v1=false)
+  def create_driver(conf='', tag='test', use_v1=false)
     require 'fluent/version'
     if Gem::Version.new(Fluent::VERSION) < Gem::Version.new('0.12')
       Fluent::Test::OutputTestDriver.new(Fluent::GeoipOutput, tag).configure(conf, use_v1)
@@ -280,7 +280,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal -122.0574, emits[0][2]['longitude']
       assert_equal '37.419200000000004,-122.0574', emits[0][2]['float_concat']
       assert_equal [-122.0574, 37.419200000000004], emits[0][2]['float_array']
-      float_nest = {"lat" => 37.419200000000004, "lon" => -122.0574 }
+      float_nest = {"lat" => 37.419200000000004, "lon" => -122.0574}
       assert_equal float_nest, emits[0][2]['float_nest']
       assert_equal '37.419200000000004,-122.0574', emits[0][2]['string_concat']
       assert_equal ["Mountain View", "United States"], emits[0][2]['string_array']
@@ -335,7 +335,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal 'United States', emits[0][2]['from_country']
       assert_equal 'Tokorozawa', emits[0][2]['to_city']
       assert_equal 'Japan', emits[0][2]['to_country']
-      assert_equal ['United States','Japan'], emits[0][2]['string_array']
+      assert_equal ['United States', 'Japan'], emits[0][2]['string_array']
 
       assert_equal nil, emits[1][2]['from_city']
       assert_equal nil, emits[1][2]['to_city']
@@ -369,7 +369,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       emits = d1.emits
       assert_equal 1, emits.length
       assert_equal 'geoip.access', emits[0][0] # tag
-      location_properties = { "country_code" => "US", "lat" => 37.419200000000004, "lon"=> -122.0574 }
+      location_properties = {"country_code" => "US", "lat" => 37.419200000000004, "lon" => -122.0574}
       assert_equal location_properties, emits[0][2]['location_properties']
       assert_equal '37.419200000000004,-122.0574', emits[0][2]['location_string']
       assert_equal 'US', emits[0][2]['location_string2']
@@ -386,7 +386,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       emits = d1.emits
       assert_equal 1, emits.length
       assert_equal 'geoip.access', emits[0][0] # tag
-      location_properties = { "country_code" => "US", "lat" => 37.419200000000004, "lon"=> -122.0574 }
+      location_properties = {"country_code" => "US", "lat" => 37.419200000000004, "lon" => -122.0574}
       assert_equal location_properties, emits[0][2]['location_properties']
       assert_equal '37.419200000000004,-122.0574', emits[0][2]['location_string']
       assert_equal 'US', emits[0][2]['location_string2']
@@ -416,7 +416,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       emits = d1.emits
       assert_equal 1, emits.length
       assert_equal 'geoip.access', emits[0][0] # tag
-      location_properties = { "city"=>"Mountain View", "country_code"=>"US", "latitude"=>37.419200000000004, "longitude"=>-122.0574 }
+      location_properties = {"city" => "Mountain View", "country_code" => "US", "latitude" => 37.419200000000004, "longitude" => -122.0574}
       assert_equal location_properties, emits[0][2]['location_properties']
     end
   end
@@ -574,7 +574,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal -122.0574, emits[0][2]['longitude']
       assert_equal '37.419200000000004,-122.0574', emits[0][2]['float_concat']
       assert_equal [-122.0574, 37.419200000000004], emits[0][2]['float_array']
-      float_nest = {"lat" => 37.419200000000004, "lon" => -122.0574 }
+      float_nest = {"lat" => 37.419200000000004, "lon" => -122.0574}
       assert_equal float_nest, emits[0][2]['float_nest']
       assert_equal '37.419200000000004,-122.0574', emits[0][2]['string_concat']
       assert_equal ["Mountain View", "United States"], emits[0][2]['string_array']
@@ -629,7 +629,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal 'United States', emits[0][2]['from_country']
       assert_equal 'Tokorozawa', emits[0][2]['to_city']
       assert_equal 'Japan', emits[0][2]['to_country']
-      assert_equal ['United States','Japan'], emits[0][2]['string_array']
+      assert_equal ['United States', 'Japan'], emits[0][2]['string_array']
 
       assert_equal nil, emits[1][2]['from_city']
       assert_equal nil, emits[1][2]['to_city']
@@ -663,7 +663,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       emits = d1.emits
       assert_equal 1, emits.length
       assert_equal 'geoip.access', emits[0][0] # tag
-      location_properties = { "country_code" => "US", "lat" => 37.419200000000004, "lon"=> -122.0574 }
+      location_properties = {"country_code" => "US", "lat" => 37.419200000000004, "lon" => -122.0574}
       assert_equal location_properties, emits[0][2]['location_properties']
       assert_equal '37.419200000000004,-122.0574', emits[0][2]['location_string']
       assert_equal 'US', emits[0][2]['location_string2']
@@ -680,7 +680,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       emits = d1.emits
       assert_equal 1, emits.length
       assert_equal 'geoip.access', emits[0][0] # tag
-      location_properties = { "country_code" => "US", "lat" => 37.419200000000004, "lon"=> -122.0574 }
+      location_properties = {"country_code" => "US", "lat" => 37.419200000000004, "lon" => -122.0574}
       assert_equal location_properties, emits[0][2]['location_properties']
       assert_equal '37.419200000000004,-122.0574', emits[0][2]['location_string']
       assert_equal 'US', emits[0][2]['location_string2']
@@ -710,7 +710,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       emits = d1.emits
       assert_equal 1, emits.length
       assert_equal 'geoip.access', emits[0][0] # tag
-      location_properties = { "city"=>"Mountain View", "country_code"=>"US", "latitude"=>37.419200000000004, "longitude"=>-122.0574 }
+      location_properties = {"city" => "Mountain View", "country_code" => "US", "latitude" => 37.419200000000004, "longitude" => -122.0574}
       assert_equal location_properties, emits[0][2]['location_properties']
     end
   end
@@ -950,7 +950,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal -122.05740356445312, emits[0][2]['longitude']
       assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['float_concat']
       assert_equal [-122.05740356445312, 37.4192008972168], emits[0][2]['float_array']
-      float_nest = {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
+      float_nest = {"lat" => 37.4192008972168, "lon" => -122.05740356445312}
       assert_equal float_nest, emits[0][2]['float_nest']
       assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['string_concat']
       assert_equal ["Mountain View", "United States"], emits[0][2]['string_array']
@@ -1004,7 +1004,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal 'United States', emits[0][2]['from_country']
       assert_equal 'Tokorozawa', emits[0][2]['to_city']
       assert_equal 'Japan', emits[0][2]['to_country']
-      assert_equal ['United States','Japan'], emits[0][2]['string_array']
+      assert_equal ['United States', 'Japan'], emits[0][2]['string_array']
 
       assert_equal nil, emits[1][2]['from_city']
       assert_equal nil, emits[1][2]['to_city']
@@ -1037,7 +1037,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       emits = d1.emits
       assert_equal 1, emits.length
       assert_equal 'geoip.access', emits[0][0] # tag
-      location_properties = { "country_code" => "US", "lat" => 37.4192008972168, "lon"=> -122.05740356445312 }
+      location_properties = {"country_code" => "US", "lat" => 37.4192008972168, "lon" => -122.05740356445312}
       assert_equal location_properties, emits[0][2]['location_properties']
       assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['location_string']
       assert_equal 'US', emits[0][2]['location_string2']
@@ -1054,7 +1054,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       emits = d1.emits
       assert_equal 1, emits.length
       assert_equal 'geoip.access', emits[0][0] # tag
-      location_properties = { "country_code" => "US", "lat" => 37.4192008972168, "lon"=> -122.05740356445312 }
+      location_properties = {"country_code" => "US", "lat" => 37.4192008972168, "lon" => -122.05740356445312}
       assert_equal location_properties, emits[0][2]['location_properties']
       assert_equal '37.4192008972168,-122.05740356445312', emits[0][2]['location_string']
       assert_equal 'US', emits[0][2]['location_string2']
@@ -1083,8 +1083,75 @@ class GeoipOutputTest < Test::Unit::TestCase
       emits = d1.emits
       assert_equal 1, emits.length
       assert_equal 'geoip.access', emits[0][0] # tag
-      location_properties = { "city"=>"Mountain View", "country_code"=>"US", "latitude"=>37.4192008972168, "longitude"=>-122.05740356445312 }
+      location_properties = {"city" => "Mountain View", "country_code" => "US", "latitude" => 37.4192008972168, "longitude" => -122.05740356445312}
       assert_equal location_properties, emits[0][2]['location_properties']
+    end
+
+    def test_emit_updated_database
+      db_test_normal_path = 'data/GeoLiteCity-Test-Normal.dat'
+      db_test_uppercase_path = 'data/GeoLiteCity-Test-Uppercase.dat'
+      db_test_tmp_path = 'data/GeoLiteCity-tmp.dat'
+      if File.exist?(db_test_normal_path)
+        FileUtils.copy(db_test_normal_path, db_test_tmp_path)
+      else
+        raise "File ${db_test_normal_path} doesn't exist in data directory"
+      end
+
+      # use filesystem database_read_type for testing purposes
+      config = %[
+        geoip_lookup_key  host
+        database_refresh_check  true
+        geoip_database  'data/GeoLiteCity-tmp.dat'
+        database_read_type filesystem
+        <record>
+          location_properties  {
+            "city": "${city['host']}",
+            "country_code": "${country_code['host']}",
+            "latitude": "${latitude['host']}",
+            "longitude": "${longitude['host']}"
+          }
+        </record>
+        remove_tag_prefix input.
+        tag               geoip.${tag}
+      ]
+
+      # create two drivers with the same config to avoid filtered attribute cluttering
+      d1 = create_driver(config, 'input.access', true)
+      d2 = create_driver(config, 'input.access', true)
+
+      d1.run do
+        d1.emit({'host' => '66.102.3.80', 'message' => 'valid ip'})
+      end
+
+      emits = d1.emits
+      begin
+        assert_equal 1, emits.length
+        assert_equal 'geoip.access', emits[0][0] # tag
+        location_properties = {"city" => "Mountain View", "country_code" => "US", "latitude" => 37.4192008972168, "longitude" => -122.05740356445312}
+        assert_equal location_properties, emits[0][2]['location_properties']
+      rescue
+        FileUtils.remove(db_test_tmp_path)
+        raise
+      end
+
+      # overwrite database with different version
+      FileUtils.copy(db_test_uppercase_path, db_test_tmp_path)
+
+      d2.run do
+        d2.emit({'host' => '66.102.3.80', 'message' => 'valid ip'})
+      end
+
+      emits = d2.emits
+      begin
+        assert_equal 1, emits.length
+        assert_equal 'geoip.access', emits[0][0] # tag
+        location_properties = {"city" => "MOUNTAIN VIEW", "country_code" => "US", "latitude" => 37.4192008972168, "longitude" => -122.05740356445312}
+        assert_equal location_properties, emits[0][2]['location_properties']
+      rescue
+        raise
+      ensure
+        FileUtils.remove(db_test_tmp_path)
+      end
     end
   end
 end

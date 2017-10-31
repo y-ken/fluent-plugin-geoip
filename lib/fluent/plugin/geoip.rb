@@ -164,7 +164,7 @@ module Fluent
     def load_database(plugin)
       case plugin.backend_library
       when :geoip
-        ::GeoIP::City.new(plugin.geoip_database, :memory, false)
+        ::GeoIP::City.new(plugin.geoip_database, plugin.database_read_type.to_sym, plugin.database_refresh_check)
       when :geoip2_compat
         require 'geoip2_compat'
         GeoIP2Compat.new(plugin.geoip2_database)
