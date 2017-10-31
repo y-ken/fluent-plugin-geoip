@@ -177,13 +177,13 @@ class GeoipFilterTest < Test::Unit::TestCase
       messages = [
         {'host' => '203.0.113.1', 'message' => 'invalid ip'},
         {'host' => '0', 'message' => 'invalid ip'},
-        {'host' => '8.8.8.8', 'message' => 'google public dns'}
+        {'host' => '66.102.3.80', 'message' => 'google public dns'}
       ]
       expected = [
         {'host' => '203.0.113.1', 'message' => 'invalid ip'},
         {'host' => '0', 'message' => 'invalid ip'},
-        {'host' => '8.8.8.8', 'message' => 'google public dns',
-         'geoip_city' => 'Mountain View', 'geopoint' => [-122.0838, 37.386]}
+        {'host' => '66.102.3.80', 'message' => 'google public dns',
+         'geoip_city' => 'Mountain View', 'geopoint' => [-122.0574, 37.419200000000004]}
       ]
       filtered = filter(config, messages)
       assert_equal(expected, filtered)
@@ -446,13 +446,13 @@ class GeoipFilterTest < Test::Unit::TestCase
       messages = [
         {'host' => '203.0.113.1', 'message' => 'invalid ip'},
         {'host' => '0', 'message' => 'invalid ip'},
-        {'host' => '8.8.8.8', 'message' => 'google public dns'}
+        {'host' => '66.102.3.80', 'message' => 'google public dns'}
       ]
       expected = [
         {'host' => '203.0.113.1', 'message' => 'invalid ip'},
         {'host' => '0', 'message' => 'invalid ip'},
-        {'host' => '8.8.8.8', 'message' => 'google public dns',
-         'geoip_city' => 'Mountain View', 'geopoint' => [-122.0838, 37.386]}
+        {'host' => '66.102.3.80', 'message' => 'google public dns',
+         'geoip_city' => 'Mountain View', 'geopoint' => [-122.0574, 37.419200000000004]}
       ]
       filtered = filter(config, messages)
       assert_equal(expected, filtered)

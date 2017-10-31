@@ -229,7 +229,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         # 203.0.113.1 is a test address described in RFC5737
         d1.emit({'host' => '203.0.113.1', 'message' => 'invalid ip'})
         d1.emit({'host' => '0', 'message' => 'invalid ip'})
-        d1.emit({'host' => '8.8.8.8', 'message' => 'google public dns'})
+        d1.emit({'host' => '66.102.3.80', 'message' => 'google public dns'})
       end
       emits = d1.emits
       assert_equal 3, emits.length
@@ -240,7 +240,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal nil, emits[1][2]['geoip_city']
       assert_equal nil, emits[1][2]['geopoint']
       assert_equal 'Mountain View', emits[2][2]['geoip_city']
-      assert_equal [-122.0838, 37.386], emits[2][2]['geopoint']
+      assert_equal [-122.0574, 37.419200000000004], emits[2][2]['geopoint']
     end
 
     def test_emit_record_directive
@@ -523,7 +523,7 @@ class GeoipOutputTest < Test::Unit::TestCase
         # 203.0.113.1 is a test address described in RFC5737
         d1.emit({'host' => '203.0.113.1', 'message' => 'invalid ip'})
         d1.emit({'host' => '0', 'message' => 'invalid ip'})
-        d1.emit({'host' => '8.8.8.8', 'message' => 'google public dns'})
+        d1.emit({'host' => '66.102.3.80', 'message' => 'google public dns'})
       end
       emits = d1.emits
       assert_equal 3, emits.length
@@ -534,7 +534,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal nil, emits[1][2]['geoip_city']
       assert_equal nil, emits[1][2]['geopoint']
       assert_equal 'Mountain View', emits[2][2]['geoip_city']
-      assert_equal [-122.0838, 37.386], emits[2][2]['geopoint']
+      assert_equal [-122.0574, 37.419200000000004], emits[2][2]['geopoint']
     end
 
     def test_emit_record_directive
