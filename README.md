@@ -58,6 +58,12 @@ $ sudo td-agent-gem install fluent-plugin-geoip
   # Specify one or more geoip lookup field which has ip address (default: host)
   # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
   geoip_lookup_key  host
+  
+  # Specify whether to refresh database if overwritten (default: false)
+  database_refresh_check  true
+  
+  # Specify read type - memory, filesystem, index (default: memory)
+  database_read_type  memory
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
   geoip_database    "/path/to/your/GeoIPCity.dat"
