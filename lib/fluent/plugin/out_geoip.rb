@@ -15,7 +15,7 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
   config_param :flush_interval, :time, default: 0
   config_param :log_level, :string, default: 'warn'
 
-  config_param :backend_library, :enum, list: Fluent::GeoIP::BACKEND_LIBRARIES, default: :geoip
+  config_param :backend_library, :enum, list: Fluent::GeoIP::BACKEND_LIBRARIES, default: :geoip2_c
   config_section :buffer do
     config_set_default :@type, :memory
     config_set_default :chunk_keys, ['tag']
