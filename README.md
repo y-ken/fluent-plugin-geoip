@@ -14,17 +14,17 @@ The accuracy details for GeoLite City (free) and GeoIP City (purchased) has desc
 
 | fluent-plugin-geoip | fluentd    | ruby   |
 |---------------------|------------|--------|
-| >= 1.0.0            | >= v0.14.0 | >= 2.1 |
+| >= 1.0.0            | >= v1.0.0  | >= 2.1 |
 | < 1.0.0             | >= v0.12.0 | >= 1.9 |
 
 If you want to use this plugin with Fluentd v0.12.x or earlier use 0.6.x.
 
 ### Compatibility notice
 
-We've used Fluentd v0.14 API in this plugin since x.x.x.
+We've used Fluentd v1 API in this plugin since 1.0.0.
 So we have dropped some features.
 
-See also [official document](http://docs.fluentd.org/v0.14/articles/plugin-update-from-v12)
+See also [official document](http://docs.fluentd.org/v1.0/articles/plugin-update-from-v12)
 
 #### Fluent::Mixin::RewriteTagName
 
