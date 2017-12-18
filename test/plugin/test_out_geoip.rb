@@ -237,7 +237,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal nil, events[1][2]['geoip_city']
       assert_equal nil, events[1][2]['geopoint']
       assert_equal 'Mountain View', events[2][2]['geoip_city']
-      assert_equal [-122.0838, 37.386], events[2][2]['geopoint']
+      assert_equal [-122.0574, 37.419200000000004], events[2][2]['geopoint']
     end
 
     def test_emit_record_directive
@@ -523,7 +523,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal nil, events[1][2]['geoip_city']
       assert_equal nil, events[1][2]['geopoint']
       assert_equal 'Mountain View', events[2][2]['geoip_city']
-      assert_equal [-122.0838, 37.386], events[2][2]['geopoint']
+      assert_equal [-122.0574, 37.419200000000004], events[2][2]['geopoint']
     end
 
     def test_emit_record_directive
@@ -845,7 +845,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal nil, events[1][2]['geoip_city']
       assert_equal nil, events[1][2]['geopoint']
       assert_equal 'Mountain View', events[2][2]['geoip_city']
-      assert_equal [-122.08380126953125, 37.38600158691406], events[2][2]['geopoint']
+      assert_equal [-122.05740356445312, 37.4192008972168], events[2][2]['geopoint']
     end
 
     def test_emit_multiple_key
