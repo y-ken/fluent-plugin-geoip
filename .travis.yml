@@ -6,14 +6,14 @@ env:
   global:
     DOCKER_COMPOSE_VERSION: 1.8.1
   matrix:
-    - TARGET_RUBY_VERSION=2.1 BUNDLE_GEMFILE=/app/Gemfile
-    - TARGET_RUBY_VERSION=2.2 BUNDLE_GEMFILE=/app/Gemfile
-    - TARGET_RUBY_VERSION=2.3 BUNDLE_GEMFILE=/app/Gemfile
-    - TARGET_RUBY_VERSION=2.4 BUNDLE_GEMFILE=/app/Gemfile
-    - TARGET_RUBY_VERSION=2.1 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
-    - TARGET_RUBY_VERSION=2.2 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
-    - TARGET_RUBY_VERSION=2.3 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
-    - TARGET_RUBY_VERSION=2.4 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12.gemfile
+    - TARGET_RUBY_VERSION=2.1 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v1.0_with_backport_dig.gemfile
+    - TARGET_RUBY_VERSION=2.2 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v1.0_with_backport_dig.gemfile
+    - TARGET_RUBY_VERSION=2.3 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v1.0_without_backport_dig.gemfile
+    - TARGET_RUBY_VERSION=2.4 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v1.0_without_backport_dig.gemfile
+    - TARGET_RUBY_VERSION=2.1 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12_with_backport_dig.gemfile
+    - TARGET_RUBY_VERSION=2.2 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12_with_backport_dig.gemfile
+    - TARGET_RUBY_VERSION=2.3 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12_without_backport_dig.gemfile
+    - TARGET_RUBY_VERSION=2.4 BUNDLE_GEMFILE=/app/gemfiles/fluentd_v0.12_without_backport_dig.gemfile
 
 before_install:
   #- sudo apt-get update

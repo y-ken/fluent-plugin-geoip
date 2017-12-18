@@ -1,6 +1,14 @@
 require 'geoip'
 require 'yajl'
-require 'dig_rb'
+unless {}.respond_to?(:dig)
+  begin
+    # backport_dig is faster than dig_rb so prefer backport_dig.
+    # And Fluentd v1.0.1 uses backport_dig
+    require 'backport_dig'
+  rescue LoadError
+    require 'dig_rb'
+  end
+end
 
 module Fluent
   class GeoIP
