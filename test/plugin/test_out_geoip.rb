@@ -703,6 +703,7 @@ class GeoipOutputTest < Test::Unit::TestCase
   sub_test_case "geoip legacy" do
     def test_emit
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  host
         enable_key_city   geoip_city
         tag               geoip.${tag[1]}
@@ -720,6 +721,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_tag_option
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           geoip_city      ${city['host']}
@@ -739,6 +741,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_tag_parts
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           geoip_city      ${city['host']}
@@ -756,6 +759,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_with_dot_key
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  ip.origin, ip.dest
         <record>
           origin_country  ${country_code['ip.origin']}
@@ -775,6 +779,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_nested_attr
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  host.ip
         enable_key_city   geoip_city
         tag               geoip.${tag[1]}
@@ -792,6 +797,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_with_unknown_address
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           geoip_city      ${city['host']}
@@ -815,6 +821,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_with_skip_unknown_address
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           geoip_city      ${city['host']}
@@ -843,6 +850,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_multiple_key
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  from.ip, to.ip
         enable_key_city   from_city, to_city
         tag               geoip.${tag[1]}
@@ -862,6 +870,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_multiple_key_multiple_record
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  from.ip, to.ip
         enable_key_city   from_city, to_city
         enable_key_country_name from_country, to_country
@@ -893,6 +902,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_record_directive
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  from.ip
         <record>
           from_city       ${city['from.ip']}
@@ -957,6 +967,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_record_directive_multiple_record
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  from.ip, to.ip
         <record>
           from_city       ${city['from.ip']}
@@ -990,6 +1001,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def config_quoted_record
       %[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           location_properties  '{ "country_code" : "${country_code["host"]}", "lat": ${latitude["host"]}, "lon": ${longitude["host"]} }'
@@ -1039,6 +1051,7 @@ class GeoipOutputTest < Test::Unit::TestCase
 
     def test_emit_multiline_v1_config
       d1 = create_driver(%[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           location_properties  {

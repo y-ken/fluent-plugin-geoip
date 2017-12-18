@@ -666,6 +666,7 @@ class GeoipFilterTest < Test::Unit::TestCase
   sub_test_case "geoip legacy" do
     def test_filter
       config = %[
+        backend_library geoip
         geoip_lookup_key  host
         enable_key_city   geoip_city
       ]
@@ -683,6 +684,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def test_filter_with_dot_key
       config = %[
+        backend_library geoip
         geoip_lookup_key  ip.origin, ip.dest
         <record>
           origin_country  ${country_code['ip.origin']}
@@ -702,6 +704,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def test_filter_nested_attr
       config = %[
+        backend_library geoip
         geoip_lookup_key  host.ip
         enable_key_city   geoip_city
       ]
@@ -719,6 +722,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def test_filter_with_unknown_address
       config = %[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           geoip_city      ${city['host']}
@@ -741,6 +745,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def test_filter_with_skip_unknown_address
       config = %[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           geoip_city      ${city['host']}
@@ -766,6 +771,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def test_filter_multiple_key
       config = %[
+        backend_library geoip
         geoip_lookup_key  from.ip, to.ip
         enable_key_city   from_city, to_city
       ]
@@ -784,6 +790,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def test_filter_multiple_key_multiple_record
       config = %[
+        backend_library geoip
         geoip_lookup_key  from.ip, to.ip
         enable_key_city   from_city, to_city
         enable_key_country_name from_country, to_country
@@ -823,6 +830,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def test_filter_record_directive
       config = %[
+        backend_library geoip
         geoip_lookup_key  from.ip
         <record>
           from_city       ${city['from.ip']}
@@ -889,6 +897,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def test_filter_record_directive_multiple_record
       config = %[
+        backend_library geoip
         geoip_lookup_key  from.ip, to.ip
         <record>
           from_city       ${city['from.ip']}
@@ -927,6 +936,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def config_quoted_record
       %[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           location_properties  '{ "country_code" : "${country_code["host"]}", "lat": ${latitude["host"]}, "lon": ${longitude["host"]} }'
@@ -987,6 +997,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
     def test_filter_multiline_v1_config
       config = %[
+        backend_library geoip
         geoip_lookup_key  host
         <record>
           location_properties  {
