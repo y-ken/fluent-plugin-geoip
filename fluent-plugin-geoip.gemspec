@@ -21,9 +21,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "appraisal"
   spec.add_development_dependency "test-unit", ">= 3.1.0"
   spec.add_development_dependency "geoip2_compat"
-  spec.add_development_dependency "geoip2_c"
 
   spec.add_runtime_dependency "fluentd", [">= 0.14.8", "< 2"]
   spec.add_runtime_dependency "geoip-c"
+  spec.add_runtime_dependency "geoip2_c"
   spec.add_runtime_dependency "dig_rb"
 end
