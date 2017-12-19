@@ -17,7 +17,7 @@ The accuracy details for GeoLite City (free) and GeoIP City (purchased) has desc
 | >= 1.0.0            | >= v1.0.2  | >= 2.1 |
 | < 1.0.0             | >= v0.12.0 | >= 1.9 |
 
-If you want to use this plugin with Fluentd v0.12.x or earlier use 0.6.x.
+If you want to use this plugin with Fluentd v0.12.x or earlier use 0.8.x.
 
 ### Compatibility notice
 
