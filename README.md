@@ -10,6 +10,68 @@ The accuracy details for GeoLite City (free) and GeoIP City (purchased) has desc
 * http://www.maxmind.com/en/geolite_city_accuracy ([lang:ja](http://www.maxmind.com/ja/geolite_city_accuracy))
 * http://www.maxmind.com/en/city_accuracy ([lang:ja](http://www.maxmind.com/ja/city_accuracy))
 
+## Requirements
+
+| fluent-plugin-geoip | fluentd    | ruby   |
+|---------------------|------------|--------|
+| >= 1.0.0            | >= v1.0.2  | >= 2.1 |
+| < 1.0.0             | >= v0.12.0 | >= 1.9 |
+
+If you want to use this plugin with Fluentd v0.12.x or earlier use 0.8.x.
+
+### Compatibility notice
+
+We've used Fluentd v1 API in this plugin since 1.0.0.
+So we have dropped some features.
+
+See also [official document](http://docs.fluentd.org/v1.0/articles/plugin-update-from-v12)
+
+#### Fluent::Mixin::RewriteTagName
+
+* `${tag}`, `__TAG__`
+
+    Alternative: Use `${tag}` placeholder
+
+* `${tag_parts[n]}`, `__TAG_PARTS[n]__`
+
+    Alternative: Use `${tag[n]}` placeholder
+
+* `${hostname}`, `__HOSTNAME__`
+
+    Alternative1: Use filter before this plugin and chunk keys:
+    ```
+    <filter>
+      @type record_transformer
+      <record>
+        hostname ${hostname}
+      </record>
+    </filter>
+    <match **>
+      @type geoip
+      tag geoip.${tag[1]}.${hostname}
+      <record>
+        city ${city["host"]}
+      </record>
+      <buffer tag, hostname>
+        flush_interval 1s
+      </buffer>
+    </match>
+    ```
+
+    Alternative2: Just inject hostname into record you can use `<inject>` section instead:
+    ```
+    <match **>
+      @type geoip
+      tag geoip.${tag[1]}.${hostname}
+      <record>
+        city ${city["host"]}
+      </record>
+      <inject>
+        hostname_key hostname
+      </inject>
+    </match>
+    ```
+
 ## Dependency
 
 before use, install dependent library as:
@@ -18,18 +80,14 @@ before use, install dependent library as:
 # for RHEL/CentOS
 $ sudo yum group install "Development Tools"
 $ sudo yum install geoip-devel --enablerepo=epel
-$ sudo yum install libmaxminddb-devel --enablerepo=epel
 
 # for Ubuntu/Debian
 $ sudo apt-get install build-essential
 $ sudo apt-get install libgeoip-dev
-$ sudo apt-get install libmaxminddb-dev
 
 # for OS X
 $ brew install geoip
-$ brew install libmaxminddb
 $ bundle config build.geoip-c --with-geoip-dir=/usr/local/include/
-$ bundle config build.geoip2_c --with-opt-include=/usr/local/include/
 ```
 
 ## Installation
@@ -61,6 +119,10 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
   geoip_database    "/path/to/your/GeoIPCity.dat"
+  # Specify optional geoip2 database
+  # geoip2_database   "/path/to/your/GeoLite2-City.mmdb"
+  # Specify backend library (geoip, geoip2_compat, geoip2_c)
+  backend_library geoip
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
@@ -76,8 +138,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
   </record>
 
   # Settings for tag
-  remove_tag_prefix access.
-  tag               geoip.${tag}
+  tag               geoip.${tag[1]}
 
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
   skip_adding_null_record  true
@@ -85,8 +146,10 @@ $ sudo td-agent-gem install fluent-plugin-geoip
   # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
   log_level         info
 
-  # Set buffering time (default: 0s)
-  flush_interval    1s
+  <buffer tag>
+    # Set buffering time (default: 0s)
+    flush_interval    1s
+  </buffer>
 </match>
 ```
 
@@ -100,8 +163,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
     user1_city      ${city["user1_host"]}
     user2_city      ${city["user2_host"]}
   </record>
-  remove_tag_prefix access.
-  tag               geoip.${tag}
+  tag               geoip.${tag[1]}
 </match>
 ```
 
@@ -109,6 +171,7 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
 It is a sample to get friendly geo point recdords for elasticsearch with Yajl (JSON) parser.<br />
 
+**Notice** v0 config will be deprecated in the future.
 
 ```
 <match access.apache>
@@ -127,15 +190,14 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
     # ex. [-122.05740356445312, 37.4192008972168]
     location_array       '[${longitude["host"]},${latitude["host"]}]'
   </record>
-  remove_tag_prefix      access.
-  tag                    geoip.${tag}
+  tag                    geoip.${tag[1]}
 
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
   skip_adding_null_record  true
 </match>
 ```
 
-On the case of using td-agent2 (v1-config), it have to quote `{ ... }` or `[ ... ]` block with quotation like below.
+On the case of using td-agent3 (v1-config), it have to quote `{ ... }` or `[ ... ]` block with quotation like below.
 
 ```
 <match access.apache>
@@ -166,6 +228,10 @@ Note that filter version of geoip plugin does not have handling tag feature.
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
   geoip_database    "/path/to/your/GeoIPCity.dat"
+  # Specify optional geoip2 database
+  # geoip2_database   "/path/to/your/GeoLite2-City.mmdb"
+  # Specify backend library (geoip, geoip2_compat, geoip2_c)
+  backend_library geoip
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
@@ -185,9 +251,6 @@ Note that filter version of geoip plugin does not have handling tag feature.
 
   # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
   log_level         info
-
-  # Set buffering time (default: 0s)
-  flush_interval    1s
 </filter>
 ```
 
@@ -215,8 +278,7 @@ Note that filter version of geoip plugin does not have handling tag feature.
       lon     ${longitude["host"]}
       country ${country_code["host"]}
     </record>
-    remove_tag_prefix test.
-    tag     debug.${tag}
+    tag     debug.${tag[1]}
   </store>
 </match>
 
@@ -299,6 +361,11 @@ For more example of geolocating, you can try these websites like [Geo IP Address
 
 Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/#GeoIP_City_Edition_CSV_Database_Fields
 
+Related configurations:
+
+* `backend_library`: `geoip` (default)
+* `geoip_database`: path to your GeoLiteCity.dat
+
 ### GeoIP2
 
 You can get any fields in the
@@ -333,6 +400,11 @@ For example(geoip2_compat backend):
 
 **NOTE**: geoip2_compat backend supports only above fields.
 
+Related configurations:
+
+* `backend_library`: `geoip2_compat` or `geoip2_c`
+* `geoip2_database`: path to your GeoLite2-City.mmdb
+
 ## Parameters
 
 ### GeoipOutput
@@ -348,16 +420,9 @@ Further details are written at http://docs.fluentd.org/articles/in_exec
 Skip adding geoip fields when this valaues to `true`.
 On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
 
-* `remove_tag_prefix`
-* `remove_tag_suffix`
-* `add_tag_prefix`
-* `add_tag_suffix`
-
-Set one or more option are required unless using `tag` option for editing tag name. (HandleTagNameMixin feature)
-
 * `tag`
 
-On using this option with tag placeholder like `tag geoip.${tag}` (test code is available at [test_out_geoip.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/test/plugin/test_out_geoip.rb)), it will be overwrite after these options affected. which are remove_tag_prefix, remove_tag_suffix, add_tag_prefix and add_tag_suffix.
+On using this option with tag placeholder like `tag geoip.${tag}` (test code is available at [test_out_geoip.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/test/plugin/test_out_geoip.rb)).
 
 * `flush_interval` (default: 0 sec)
 
@@ -376,10 +441,6 @@ Further details are written at http://docs.fluentd.org/articles/in_exec
 
 Skip adding geoip fields when this valaues to `true`.
 On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
-
-* `flush_interval` (default: 0 sec)
-
-Set buffering time to execute bulk lookup geoip.
 
 ## Articles
 

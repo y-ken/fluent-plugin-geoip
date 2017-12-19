@@ -77,13 +77,6 @@ module Fluent
         end
       end
 
-      if plugin.is_a?(Fluent::BufferedOutput)
-        @placeholder_expander = PlaceholderExpander.new
-        unless have_tag_option?(plugin)
-          raise Fluent::ConfigError, "geoip: required at least one option of 'tag', 'remove_tag_prefix', 'remove_tag_suffix', 'add_tag_prefix', 'add_tag_suffix'."
-        end
-      end
-
       @geoip = load_database(plugin)
     end
 
@@ -109,12 +102,6 @@ module Fluent
 
     private
 
-    def have_tag_option?(plugin)
-      plugin.tag ||
-        plugin.remove_tag_prefix || plugin.remove_tag_suffix ||
-        plugin.add_tag_prefix || plugin.add_tag_suffix
-    end
-
     def json?(text)
       text.match(/^\[.+\]$/) || text.match(/^\{.+\}$/)
     end
@@ -129,7 +116,7 @@ module Fluent
       begin
         return Yajl::Parser.parse(message)
       rescue Yajl::ParseError => e
-        log.info "geoip: failed to parse '#{message}' as json.", :error_class => e.class, :error => e.message
+        log.info "geoip: failed to parse '#{message}' as json.", error_class: e.class, error: e.message
         return nil
       end
     end
