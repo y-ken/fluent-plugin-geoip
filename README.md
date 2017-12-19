@@ -80,18 +80,14 @@ before use, install dependent library as:
 # for RHEL/CentOS
 $ sudo yum group install "Development Tools"
 $ sudo yum install geoip-devel --enablerepo=epel
-$ sudo yum install libmaxminddb-devel --enablerepo=epel
 
 # for Ubuntu/Debian
 $ sudo apt-get install build-essential
 $ sudo apt-get install libgeoip-dev
-$ sudo apt-get install libmaxminddb-dev
 
 # for OS X
 $ brew install geoip
-$ brew install libmaxminddb
 $ bundle config build.geoip-c --with-geoip-dir=/usr/local/include/
-$ bundle config build.geoip2_c --with-opt-include=/usr/local/include/
 ```
 
 ## Installation
