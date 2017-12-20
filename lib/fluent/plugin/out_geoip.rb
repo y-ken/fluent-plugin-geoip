@@ -6,8 +6,8 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
 
   helpers :event_emitter, :inject, :compat_parameters
 
-  config_param :geoip_database, :string, default: File.dirname(__FILE__) + '/../../../data/GeoLiteCity.dat'
-  config_param :geoip2_database, :string, default: File.dirname(__FILE__) + '/../../../data/GeoLite2-City.mmdb'
+  config_param :geoip_database, :string, default: File.expand_path('../../../data/GeoLiteCity.dat', __dir__)
+  config_param :geoip2_database, :string, default: File.expand_path('../../../data/GeoLite2-City.mmdb', __dir__)
   config_param :geoip_lookup_key, :string, default: 'host'
   config_param :tag, :string, default: nil
   config_param :skip_adding_null_record, :bool, default: false
