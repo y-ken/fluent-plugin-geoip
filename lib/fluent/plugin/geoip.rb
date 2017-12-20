@@ -56,7 +56,9 @@ module Fluent
               dummy_text = Yajl::Encoder.encode('dummy_text')
               Yajl::Parser.parse(v.gsub(REGEXP_PLACEHOLDER_SCAN, dummy_text))
             rescue Yajl::ParseError => e
-              raise Fluent::ConfigError, "geoip: failed to parse '#{v}' as json."
+              message = "geoip: failed to parse '#{v}' as json."
+              log.error message, error: e
+              raise Fluent::ConfigError, message
             end
           }
           validate_json.call if json?(v.tr('\'"\\', ''))
