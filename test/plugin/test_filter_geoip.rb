@@ -9,7 +9,7 @@ class GeoipFilterTest < Test::Unit::TestCase
   end
 
   CONFIG = %[
-    geoip_lookup_key  host
+    geoip_lookup_keys  host
     <record>
       geoip_city ${city.names.en['host']}
     </record>
@@ -55,7 +55,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     test "invalid json structure w/ Ruby hash like" do
       assert_raise(Fluent::ConfigParseError) {
         create_driver %[
-          geoip_lookup_key  host
+          geoip_lookup_keys host
           <record>
             invalid_json    {"foo" => 123}
           </record>
@@ -66,7 +66,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     test "invalid json structure w/ unquoted string literal" do
       assert_raise(Fluent::ConfigParseError) {
         create_driver %[
-          geoip_lookup_key  host
+          geoip_lookup_keys host
           <record>
             invalid_json    {"foo" : string, "bar" : 123}
           </record>
@@ -115,7 +115,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_with_dot_key
       config = %[
         backend_library   geoip2_c
-        geoip_lookup_key  ip.origin, ip.dest
+        geoip_lookup_keys ip.origin, ip.dest
         <record>
           origin_country  ${country.iso_code['ip.origin']}
           dest_country    ${country.iso_code['ip.dest']}
@@ -135,7 +135,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_with_unknown_address
       config = %[
         backend_library   geoip2_c
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           geoip_city      ${city.names.en['host']}
           geopoint        [${location.longitude['host']}, ${location.latitude['host']}]
@@ -158,7 +158,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_with_skip_unknown_address
       config = %[
         backend_library   geoip2_c
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           geoip_city      ${city.names.en['host']}
           geopoint        [${location.longitude['host']}, ${location.latitude['host']}]
@@ -184,7 +184,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive
       config = %[
         backend_library   geoip2_c
-        geoip_lookup_key  from.ip
+        geoip_lookup_keys from.ip
         <record>
           from_city       ${city.names.en['from.ip']}
           from_country    ${country.names.en['from.ip']}
@@ -251,7 +251,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive_multiple_record
       config = %[
         backend_library   geoip2_c
-        geoip_lookup_key  from.ip, to.ip
+        geoip_lookup_keys from.ip, to.ip
         <record>
           from_city       ${city.names.en['from.ip']}
           to_city         ${city.names.en['to.ip']}
@@ -290,7 +290,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def config_quoted_record
       %[
         backend_library   geoip2_c
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           location_properties  '{ "country_code" : "${country.iso_code["host"]}", "lat": ${location.latitude["host"]}, "lon": ${location.longitude["host"]} }'
           location_string      ${location.latitude['host']},${location.longitude['host']}
@@ -351,7 +351,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_multiline_v1_config
       config = %[
         backend_library   geoip2_c
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           location_properties  {
             "city": "${city.names.en['host']}",
@@ -382,7 +382,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_when_latitude_longitude_is_nil
       config = %[
         backend_library   geoip2_c
-        geoip_lookup_key  host
+        geoip_lookup_keys  host
         <record>
           latitude  ${location.latitude['host']}
           longitude ${location.longitude['host']}
@@ -410,7 +410,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_with_dot_key
       config = %[
         backend_library   geoip2_compat
-        geoip_lookup_key  ip.origin, ip.dest
+        geoip_lookup_keys ip.origin, ip.dest
         <record>
           origin_country  ${country_code['ip.origin']}
           dest_country    ${country_code['ip.dest']}
@@ -430,7 +430,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_with_unknown_address
       config = %[
         backend_library   geoip2_compat
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           geoip_city      ${city['host']}
           geopoint        [${longitude['host']}, ${latitude['host']}]
@@ -453,7 +453,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_with_skip_unknown_address
       config = %[
         backend_library   geoip2_compat
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           geoip_city      ${city['host']}
           geopoint        [${longitude['host']}, ${latitude['host']}]
@@ -479,7 +479,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive
       config = %[
         backend_library   geoip2_compat
-        geoip_lookup_key  from.ip
+        geoip_lookup_keys from.ip
         <record>
           from_city       ${city['from.ip']}
           from_country    ${country_name['from.ip']}
@@ -546,7 +546,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive_multiple_record
       config = %[
         backend_library   geoip2_compat
-        geoip_lookup_key  from.ip, to.ip
+        geoip_lookup_keys from.ip, to.ip
         <record>
           from_city       ${city['from.ip']}
           to_city         ${city['to.ip']}
@@ -585,7 +585,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def config_quoted_record
       %[
         backend_library   geoip2_compat
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           location_properties  '{ "country_code" : "${country_code["host"]}", "lat": ${latitude["host"]}, "lon": ${longitude["host"]} }'
           location_string      ${latitude['host']},${longitude['host']}
@@ -646,7 +646,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_multiline_v1_config
       config = %[
         backend_library   geoip2_compat
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           location_properties  {
             "city": "${city['host']}",
@@ -677,7 +677,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_when_latitude_longitude_is_nil
       config = %[
         backend_library   geoip2_compat
-        geoip_lookup_key  host
+        geoip_lookup_keys  host
         <record>
           latitude  ${latitude['host']}
           longitude ${longitude['host']}
@@ -705,7 +705,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter
       config = %[
         backend_library geoip
-        geoip_lookup_key  host
+        geoip_lookup_keys  host
         <record>
           geoip_city ${city['host']}
         </record>
@@ -725,7 +725,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_with_dot_key
       config = %[
         backend_library geoip
-        geoip_lookup_key  ip.origin, ip.dest
+        geoip_lookup_keys ip.origin, ip.dest
         <record>
           origin_country  ${country_code['ip.origin']}
           dest_country    ${country_code['ip.dest']}
@@ -745,7 +745,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_nested_attr
       config = %[
         backend_library geoip
-        geoip_lookup_key  host.ip
+        geoip_lookup_keys  host.ip
         <record>
           geoip_city ${city['host.ip']}
         </record>
@@ -765,7 +765,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_with_unknown_address
       config = %[
         backend_library geoip
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           geoip_city      ${city['host']}
           geopoint        [${longitude['host']}, ${latitude['host']}]
@@ -788,7 +788,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_with_skip_unknown_address
       config = %[
         backend_library geoip
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           geoip_city      ${city['host']}
           geopoint        [${longitude['host']}, ${latitude['host']}]
@@ -814,7 +814,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_multiple_key
       config = %[
         backend_library geoip
-        geoip_lookup_key  from.ip, to.ip
+        geoip_lookup_keys  from.ip, to.ip
         <record>
           from_city ${city['from.ip']}
           to_city   ${city['to.ip']}
@@ -836,7 +836,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_multiple_key_multiple_record
       config = %[
         backend_library geoip
-        geoip_lookup_key  from.ip, to.ip
+        geoip_lookup_keys  from.ip, to.ip
         <record>
           from_city    ${city['from.ip']}
           from_country ${country_name['from.ip']}
@@ -880,7 +880,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive
       config = %[
         backend_library geoip
-        geoip_lookup_key  from.ip
+        geoip_lookup_keys from.ip
         <record>
           from_city       ${city['from.ip']}
           from_country    ${country_name['from.ip']}
@@ -947,7 +947,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive_multiple_record
       config = %[
         backend_library geoip
-        geoip_lookup_key  from.ip, to.ip
+        geoip_lookup_keys from.ip, to.ip
         <record>
           from_city       ${city['from.ip']}
           to_city         ${city['to.ip']}
@@ -986,7 +986,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def config_quoted_record
       %[
         backend_library geoip
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           location_properties  '{ "country_code" : "${country_code["host"]}", "lat": ${latitude["host"]}, "lon": ${longitude["host"]} }'
           location_string      ${latitude['host']},${longitude['host']}
@@ -1047,7 +1047,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_multiline_v1_config
       config = %[
         backend_library geoip
-        geoip_lookup_key  host
+        geoip_lookup_keys host
         <record>
           location_properties  {
             "city": "${city['host']}",
@@ -1078,7 +1078,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_when_latitude_longitude_is_nil
       config = %[
         backend_library   geoip
-        geoip_lookup_key  host
+        geoip_lookup_keys  host
         <record>
           latitude  ${latitude['host']}
           longitude ${longitude['host']}

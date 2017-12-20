@@ -24,8 +24,7 @@ module Fluent
 
     def initialize(plugin, conf)
       @map = {}
-      plugin.geoip_lookup_key = plugin.geoip_lookup_key.split(/\s*,\s*/)
-      @geoip_lookup_key = plugin.geoip_lookup_key
+      @geoip_lookup_keys = plugin.geoip_lookup_keys
       @skip_adding_null_record = plugin.skip_adding_null_record
       @log = plugin.log
 
@@ -112,7 +111,7 @@ module Fluent
 
     def get_address(record)
       address = {}
-      @geoip_lookup_key.each do |field|
+      @geoip_lookup_keys.each do |field|
         address[field] = record[field] || record.dig(*field.split('.'))
       end
       address
