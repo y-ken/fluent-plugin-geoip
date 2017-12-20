@@ -273,7 +273,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal 'Mountain View', events[0][2]['from_city']
       assert_equal 'United States', events[0][2]['from_country']
       assert_equal 37.419200000000004, events[0][2]['latitude']
-      assert_equal -122.0574, events[0][2]['longitude']
+      assert_equal(-122.0574, events[0][2]['longitude'])
       assert_equal '37.419200000000004,-122.0574', events[0][2]['float_concat']
       assert_equal [-122.0574, 37.419200000000004], events[0][2]['float_array']
       float_nest = {"lat" => 37.419200000000004, "lon" => -122.0574 }
@@ -559,7 +559,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal 'Mountain View', events[0][2]['from_city']
       assert_equal 'United States', events[0][2]['from_country']
       assert_equal 37.419200000000004, events[0][2]['latitude']
-      assert_equal -122.0574, events[0][2]['longitude']
+      assert_equal(-122.0574, events[0][2]['longitude'])
       assert_equal '37.419200000000004,-122.0574', events[0][2]['float_concat']
       assert_equal [-122.0574, 37.419200000000004], events[0][2]['float_array']
       float_nest = {"lat" => 37.419200000000004, "lon" => -122.0574 }
@@ -933,7 +933,7 @@ class GeoipOutputTest < Test::Unit::TestCase
       assert_equal 'Mountain View', events[0][2]['from_city']
       assert_equal 'United States', events[0][2]['from_country']
       assert_equal 37.4192008972168, events[0][2]['latitude']
-      assert_equal -122.05740356445312, events[0][2]['longitude']
+      assert_equal(-122.05740356445312, events[0][2]['longitude'])
       assert_equal '37.4192008972168,-122.05740356445312', events[0][2]['float_concat']
       assert_equal [-122.05740356445312, 37.4192008972168], events[0][2]['float_array']
       float_nest = {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
