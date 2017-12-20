@@ -108,7 +108,6 @@ module Fluent
 
     def quoted_value?(text)
       # to improbe compatibility with fluentd v1-config
-      trim_quote = text[1..text.size-2]
       text.match(/(^'.+'$|^".+"$)/)
     end
 
