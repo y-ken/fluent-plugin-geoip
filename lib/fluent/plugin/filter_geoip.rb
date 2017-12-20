@@ -10,7 +10,6 @@ module Fluent::Plugin
     config_param :geoip_lookup_key, :string, default: 'host'
     config_param :skip_adding_null_record, :bool, default: false
 
-    config_set_default :include_tag_key, false
     config_set_default :@log_level, "warn"
 
     config_param :backend_library, :enum, list: Fluent::GeoIP::BACKEND_LIBRARIES, default: :geoip2_c
