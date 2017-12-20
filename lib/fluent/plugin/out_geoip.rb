@@ -13,7 +13,7 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
   config_param :skip_adding_null_record, :bool, default: false
 
   config_param :flush_interval, :time, default: 0
-  config_param :log_level, :string, default: 'warn'
+  config_set_default :@log_level, "warn"
 
   config_param :backend_library, :enum, list: Fluent::GeoIP::BACKEND_LIBRARIES, default: :geoip2_c
   config_section :buffer do
