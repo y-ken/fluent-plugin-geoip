@@ -26,5 +26,9 @@ module Fluent::Plugin
       end
       record
     end
+
+    def multi_workers_ready?
+      true
+    end
   end
 end
