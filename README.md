@@ -1,6 +1,6 @@
 # fluent-plugin-geoip [![Build Status](https://travis-ci.org/y-ken/fluent-plugin-geoip.png?branch=master)](https://travis-ci.org/y-ken/fluent-plugin-geoip)
 
-Fluentd Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
+Fluentd Filter/Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
 
 fluent-plugin-geoip has bundled cost-free [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.<br />
 Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.
