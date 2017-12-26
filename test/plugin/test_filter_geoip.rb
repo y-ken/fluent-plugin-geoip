@@ -13,6 +13,7 @@ class GeoipFilterTest < Test::Unit::TestCase
 
   def filter(config, messages, use_v1=false)
     d = create_driver(config, 'test', use_v1)
+    yield d if block_given?
     d.run {
       messages.each {|message|
         d.filter(message, @time)
@@ -20,6 +21,15 @@ class GeoipFilterTest < Test::Unit::TestCase
     }
     filtered = d.filtered_as_array
     filtered.map {|m| m[2] }
+  end
+
+  def setup_geoip_mock(d)
+    geoip = d.instance.instance_variable_get(:@geoip)
+    db = Object.new
+    def db.lookup(ip)
+      {}
+    end
+    geoip.instance_variable_set(:@geoip, db)
   end
 
   sub_test_case "configure" do
@@ -386,6 +396,32 @@ class GeoipFilterTest < Test::Unit::TestCase
       filtered = filter(config, messages, true)
       assert_equal(expected, filtered)
     end
+
+    def test_filter_when_latitude_longitude_is_nil
+      config = %[
+        backend_library   geoip2_c
+        geoip_lookup_key  host
+        <record>
+          latitude  ${location.latitude['host']}
+          longitude ${location.longitude['host']}
+        </record>
+      ]
+      messages = [
+        { "host" => "180.94.85.84", "message" => "nil latitude and longitude" }
+      ]
+      expected = [
+        {
+          "host" => "180.94.85.84",
+          "message" => "nil latitude and longitude",
+          "latitude" => 0.0,
+          "longitude" => 0.0
+        }
+      ]
+      filtered = filter(config, messages) do |d|
+        setup_geoip_mock(d)
+      end
+      assert_equal(expected, filtered)
+    end
   end
 
   sub_test_case "geoip2_compat" do
@@ -653,6 +689,32 @@ class GeoipFilterTest < Test::Unit::TestCase
         }
       ]
       filtered = filter(config, messages, true)
+      assert_equal(expected, filtered)
+    end
+
+    def test_filter_when_latitude_longitude_is_nil
+      config = %[
+        backend_library   geoip2_compat
+        geoip_lookup_key  host
+        <record>
+          latitude  ${latitude['host']}
+          longitude ${longitude['host']}
+        </record>
+      ]
+      messages = [
+        { "host" => "180.94.85.84", "message" => "nil latitude and longitude" }
+      ]
+      expected = [
+        {
+          "host" => "180.94.85.84",
+          "message" => "nil latitude and longitude",
+          "latitude" => 0.0,
+          "longitude" => 0.0
+        }
+      ]
+      filtered = filter(config, messages) do |d|
+        setup_geoip_mock(d)
+      end
       assert_equal(expected, filtered)
     end
   end
@@ -1006,6 +1068,32 @@ class GeoipFilterTest < Test::Unit::TestCase
         }
       ]
       filtered = filter(config, messages, true)
+      assert_equal(expected, filtered)
+    end
+
+    def test_filter_when_latitude_longitude_is_nil
+      config = %[
+        backend_library   geoip
+        geoip_lookup_key  host
+        <record>
+          latitude  ${latitude['host']}
+          longitude ${longitude['host']}
+        </record>
+      ]
+      messages = [
+        { "host" => "180.94.85.84", "message" => "nil latitude and longitude" }
+      ]
+      expected = [
+        {
+          "host" => "180.94.85.84",
+          "message" => "nil latitude and longitude",
+          "latitude" => 0.0,
+          "longitude" => 0.0
+        }
+      ]
+      filtered = filter(config, messages) do |d|
+        setup_geoip_mock(d)
+      end
       assert_equal(expected, filtered)
     end
   end

@@ -164,7 +164,13 @@ module Fluent
         position = placeholder_key.match(REGEXP_PLACEHOLDER_SINGLE)
         next if position.nil? or geodata[position[:record_key]].nil?
         keys = [position[:record_key]] + position[:geoip_key].split('.').map(&:to_sym)
-        placeholder[placeholder_key] = geodata.dig(*keys)
+        value = geodata.dig(*keys)
+        value = if [:latitude, :longitude].include?(keys.last)
+                  value || 0.0
+                else
+                  value
+                end
+        placeholder[placeholder_key] = value
       end
       placeholder
     end
