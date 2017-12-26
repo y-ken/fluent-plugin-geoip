@@ -403,36 +403,108 @@ Related configurations:
 
 Note that filter version of `geoip` plugin does not have handling `tag` feature.
 
-* `include_tag_key` (default: false)
+#### Plugin helpers
 
-Add original tag name into filtered record using SetTagKeyMixin.<br />
-Further details are written at http://docs.fluentd.org/articles/in_exec
+* [compat_parameters](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-compat_parameters)
+* [inject](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-inject)
 
-* `skip_adding_null_record` (default: false)
+See also [Filter Plugin Overview](https://docs.fluentd.org/v1.0/articles/filter-plugin-overview)
+
+#### Supported sections
+
+* [Inject section configurations](https://docs.fluentd.org/v1.0/articles/inject-section)
+
+#### Parameters
+
+[Plugin Common Paramteters](https://docs.fluentd.org/v1.0/articles/plugin-common-parameters)
+
+**geoip_database** (string) (optional)
+
+* Default value: bundled database `GeoLiteCity.dat`
+
+Path to GeoIP database file.
+
+**geoip2_database** (string) (optional)
+
+* Default value: bundled database `GeoLite2-City.mmdb`.
+
+Path to GeoIP2 database file.
+
+**geoip_lookup_key** (string) (optional)
+
+* Default value: `host`.
+
+Specify one or more geoip lookup field which has IP address.
+
+**skip_adding_null_record** (bool) (optional)
+
+* Default value: `nil`
 
 Skip adding geoip fields when this valaues to `true`.
 On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
+
+**backend_library** (enum) (optional)
+
+* Available values: `geoip`, `geoip2_compat`, `geoip2_c`
+* Default value: `geoip2_c`.
+
+Set backend library.
 
 ### GeoipOutput
 
-* `include_tag_key` (default: false)
-* `tag_key`
+#### Plugin helpers
 
-Add original tag name into filtered record using SetTagKeyMixin.<br />
-Further details are written at http://docs.fluentd.org/articles/in_exec
+* [event_emitter](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-event_emitter)
+* [compat_parameters](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-compat_parameters)
+* [inject](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-inject)
 
-* `skip_adding_null_record` (default: false)
+See also [Output Plugin Overview](https://docs.fluentd.org/v1.0/articles/output-plugin-overview)
+
+#### Sections
+
+* [Inject section configurations](https://docs.fluentd.org/v1.0/articles/inject-section)
+* [Buffer section configurations](https://docs.fluentd.org/v1.0/articles/buffer-section)
+
+#### Parameters
+
+[Plugin Common Paramteters](https://docs.fluentd.org/v1.0/articles/plugin-common-parameters)
+
+**geoip_database** (string) (optional)
+
+* Default value: bundled database `GeoLiteCity.dat`
+
+Path to GeoIP database file.
+
+**geoip2_database** (string) (optional)
+
+* Default value: bundled database `GeoLite2-City.mmdb`.
+
+Path to GeoIP2 database file.
+
+**geoip_lookup_key** (string) (optional)
+
+* Default value: `host`.
+
+Specify one or more geoip lookup field which has IP address.
+
+**skip_adding_null_record** (bool) (optional)
+
+* Default value: `nil`
 
 Skip adding geoip fields when this valaues to `true`.
 On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
 
-* `tag`
+**backend_library** (enum) (optional)
+
+* Available values: `geoip`, `geoip2_compat`, `geoip2_c`
+* Default value: `geoip2_c`.
+
+Set backend library.
+
+**tag** (string) (optional)
 
 On using this option with tag placeholder like `tag geoip.${tag}` (test code is available at [test_out_geoip.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/test/plugin/test_out_geoip.rb)).
 
-* `flush_interval` (default: 0 sec)
-
-Set buffering time to execute bulk lookup geoip.
 
 ## Articles
 
