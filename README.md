@@ -22,7 +22,7 @@ If you want to use this plugin with Fluentd v0.12.x or earlier use 0.8.x.
 ### Compatibility notice
 
 We've used Fluentd v1 API in this plugin since 1.0.0.
-So we have dropped some features.
+So we have dropped some features from GeoipOutput.
 
 See also [official document](http://docs.fluentd.org/v1.0/articles/plugin-update-from-v12)
 
