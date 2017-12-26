@@ -334,30 +334,6 @@ http://dev.maxmind.com/geoip/legacy/csv/
 
 ## Placeholders
 
-### GeoIP legacy
-
-Provides these placeholders for adding field of geolocate results.<br />
-For more example of geolocating, you can try these websites like [Geo IP Address View](http://www.geoipview.com/) or [View my IP information](http://www.geoiptool.com/en/).
-
-| placeholder attributes         | output example    | type         | note |
-|--------------------------------|-------------------|--------------|------|
-| ${city[lookup_field]}          | "Ithaca"          | varchar(255) |  -   |
-| ${latitude[lookup_field]}      | 42.4277992248535  | decimal      |  -   |
-| ${longitude[lookup_field]}     | -76.4981994628906 | decimal      |  -   |
-| ${country_code3[lookup_field]} | "USA"             | varchar(3)   |  -   |
-| ${country_code[lookup_field]}  | "US"              | varchar(2)   | A two-character ISO 3166-1 country code      |
-| ${country_name[lookup_field]}  | "United States"   | varchar(50)  |  -   |
-| ${dma_code[lookup_field]}      | 555               | unsigned int | **only for US**  |
-| ${area_code[lookup_field]}     | 607               | char(3)      | **only for US**  |
-| ${region[lookup_field]}        | "NY"              | char(2)      | A two character ISO-3166-2 or FIPS 10-4 code |
-
-Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/#GeoIP_City_Edition_CSV_Database_Fields
-
-Related configurations:
-
-* `backend_library`: `geoip` (default)
-* `geoip_database`: path to your GeoLiteCity.dat
-
 ### GeoIP2
 
 You can get any fields in the
@@ -396,6 +372,30 @@ Related configurations:
 
 * `backend_library`: `geoip2_compat` or `geoip2_c`
 * `geoip2_database`: path to your GeoLite2-City.mmdb
+
+### GeoIP legacy
+
+Provides these placeholders for adding field of geolocate results.<br />
+For more example of geolocating, you can try these websites like [Geo IP Address View](http://www.geoipview.com/) or [View my IP information](http://www.geoiptool.com/en/).
+
+| placeholder attributes         | output example    | type         | note |
+|--------------------------------|-------------------|--------------|------|
+| ${city[lookup_field]}          | "Ithaca"          | varchar(255) |  -   |
+| ${latitude[lookup_field]}      | 42.4277992248535  | decimal      |  -   |
+| ${longitude[lookup_field]}     | -76.4981994628906 | decimal      |  -   |
+| ${country_code3[lookup_field]} | "USA"             | varchar(3)   |  -   |
+| ${country_code[lookup_field]}  | "US"              | varchar(2)   | A two-character ISO 3166-1 country code      |
+| ${country_name[lookup_field]}  | "United States"   | varchar(50)  |  -   |
+| ${dma_code[lookup_field]}      | 555               | unsigned int | **only for US**  |
+| ${area_code[lookup_field]}     | 607               | char(3)      | **only for US**  |
+| ${region[lookup_field]}        | "NY"              | char(2)      | A two character ISO-3166-2 or FIPS 10-4 code |
+
+Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/#GeoIP_City_Edition_CSV_Database_Fields
+
+Related configurations:
+
+* `backend_library`: `geoip` (default)
+* `geoip_database`: path to your GeoLiteCity.dat
 
 ## Parameters
 
