@@ -48,4 +48,8 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
     tag = extract_placeholders(@tag, chunk.metadata) if @tag
     router.emit_stream(tag, es)
   end
+
+  def multi_workers_ready?
+    true
+  end
 end
