@@ -1,8 +1,8 @@
 # fluent-plugin-geoip [![Build Status](https://travis-ci.org/y-ken/fluent-plugin-geoip.png?branch=master)](https://travis-ci.org/y-ken/fluent-plugin-geoip)
 
-Fluentd Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
+Fluentd Filter/Output plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
 
-fluent-plugin-geoip has bundled cost-free [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.<br />
+fluent-plugin-geoip has bundled cost-free [GeoLite2 Free Downloadable Databases](https://dev.maxmind.com/geoip/geoip2/geolite2/) and [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.<br />
 Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.
 
 The accuracy details for GeoLite City (free) and GeoIP City (purchased) has described at the page below.
@@ -22,7 +22,7 @@ If you want to use this plugin with Fluentd v0.12.x or earlier use 0.8.x.
 ### Compatibility notice
 
 We've used Fluentd v1 API in this plugin since 1.0.0.
-So we have dropped some features.
+So we have dropped some features from GeoipOutput.
 
 See also [official document](http://docs.fluentd.org/v1.0/articles/plugin-update-from-v12)
 
@@ -107,6 +107,98 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
 ## Usage
 
+### For GeoipFilter
+
+Note that filter version of geoip plugin does not have handling tag feature.
+
+```xml
+<filter access.apache>
+  @type geoip
+
+  # Specify one or more geoip lookup field which has ip address (default: host)
+  # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
+  geoip_lookup_key  host
+
+  # Specify optional geoip database (using bundled GeoLiteCity databse by default)
+  # geoip_database    "/path/to/your/GeoIPCity.dat"
+  # Specify optional geoip2 database
+  # geoip2_database   "/path/to/your/GeoLite2-City.mmdb" (using bundled GeoLite2-City.mmdb by default)
+  # Specify backend library (geoip2_c, geoip, geoip2_compat)
+  backend_library geoip2_c
+
+  # Set adding field with placeholder (more than one settings are required.)
+  <record>
+    city            ${city.names.en["host"]}
+    latitude        ${location.latitude["host"]}
+    longitude       ${location.longitude["host"]}
+    country         ${country.iso_code["host"]}
+    country_name    ${country.names.en["host"]}
+    postal_code     ${postal.code["host"]}
+  </record>
+
+  # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
+  skip_adding_null_record  true
+
+  # Set @log_level (default: warn)
+  @log_level         info
+</filter>
+```
+
+#### Tips: how to geolocate multiple key
+
+```xml
+<filter access.apache>
+  @type geoip
+  geoip_lookup_key  user1_host, user2_host
+  <record>
+    user1_city      ${city.names.en["user1_host"]}
+    user2_city      ${city.names.en["user2_host"]}
+  </record>
+</filter>
+```
+
+#### Advanced config samples
+
+It is a sample to get friendly geo point recdords for elasticsearch with Yajl (JSON) parser.<br />
+
+```
+<filter access.apache>
+  @type                  geoip
+  geoip_lookup_key       host
+  <record>
+    # lat lon as properties
+    # ex. {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
+    location_properties  '{ "lat" : ${location.latitude["host"]}, "lon" : ${location.longitude["host"]} }'
+  
+    # lat lon as string
+    # ex. "37.4192008972168,-122.05740356445312"
+    location_string      ${location.latitude["host"]},${location.longitude["host"]}
+    
+    # GeoJSON (lat lon as array) is useful for Kibana's bettermap.
+    # ex. [-122.05740356445312, 37.4192008972168]
+    location_array       '[${location.longitude["host"]},${location.latitude["host"]}]'
+  </record>
+
+  # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
+  skip_adding_null_record  true
+</filter>
+```
+
+On the case of using td-agent3 (v1-config), it have to quote `{ ... }` or `[ ... ]` block with quotation like below.
+
+```
+<filter access.apache>
+  @type                  geoip
+  geoip_lookup_key       host
+  <record>
+    location_properties  '{ "lat" : ${location.latitude["host"]}, "lon" : ${location.longitude["host"]} }'
+    location_string      ${location.latitude["host"]},${location.longitude["host"]}
+    location_array       '[${location.longitude["host"]},${location.latitude["host"]}]'
+  </record>
+  skip_adding_null_record  true
+</filter>
+```
+
 ### For GeoipOutput
 
 ```xml
@@ -126,15 +218,14 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
-    latitude        ${latitude["host"]}
-    longitude       ${longitude["host"]}
-    country_code3   ${country_code3["host"]}
-    country         ${country_code["host"]}
-    country_name    ${country_name["host"]}
-    dma             ${dma_code["host"]}
-    area            ${area_code["host"]}
-    region          ${region["host"]}
-    city            ${city["host"]}
+    latitude        ${location.latitude["host"]}
+    longitude       ${location.longitude["host"]}
+    country         ${country.iso_code["host"]}
+    country_name    ${country.names.en["host"]}
+    postal_code     ${postal.code["host"]}
+    region          ${subdivisions.0.iso_code["host"]}
+    region_name     ${subdivisions.0.names.en["host"]}
+    city            ${city.names.en["host"]}
   </record>
 
   # Settings for tag
@@ -143,8 +234,8 @@ $ sudo td-agent-gem install fluent-plugin-geoip
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
   skip_adding_null_record  true
 
-  # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
-  log_level         info
+  # Set @log_level (default: warn)
+  @log_level         info
 
   <buffer tag>
     # Set buffering time (default: 0s)
@@ -153,108 +244,50 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 </match>
 ```
 
-#### Tips: how to geolocate multiple key
-
-```xml
-<match access.apache>
-  @type geoip
-  geoip_lookup_key  user1_host, user2_host
-  <record>
-    user1_city      ${city["user1_host"]}
-    user2_city      ${city["user2_host"]}
-  </record>
-  tag               geoip.${tag[1]}
-</match>
-```
-
-#### Advanced config samples
-
-It is a sample to get friendly geo point recdords for elasticsearch with Yajl (JSON) parser.<br />
-
-**Notice** v0 config will be deprecated in the future.
-
-```
-<match access.apache>
-  @type                  geoip
-  geoip_lookup_key       host
-  <record>
-    # lat lon as properties
-    # ex. {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
-    location_properties  '{ "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }'
-  
-    # lat lon as string
-    # ex. "37.4192008972168,-122.05740356445312"
-    location_string      ${latitude["host"]},${longitude["host"]}
-    
-    # GeoJSON (lat lon as array) is useful for Kibana's bettermap.
-    # ex. [-122.05740356445312, 37.4192008972168]
-    location_array       '[${longitude["host"]},${latitude["host"]}]'
-  </record>
-  tag                    geoip.${tag[1]}
-
-  # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
-  skip_adding_null_record  true
-</match>
-```
-
-On the case of using td-agent3 (v1-config), it have to quote `{ ... }` or `[ ... ]` block with quotation like below.
-
-```
-<match access.apache>
-  @type                  geoip
-  geoip_lookup_key       host
-  <record>
-    location_properties  '{ "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }'
-    location_string      ${latitude["host"]},${longitude["host"]}
-    location_array       '[${longitude["host"]},${latitude["host"]}]'
-  </record>
-  remove_tag_prefix      access.
-  tag                    geoip.${tag}
-  skip_adding_null_record  true
-</match>
-```
+## Tutorial
 
 ### For GeoipFilter
 
-Note that filter version of geoip plugin does not have handling tag feature.
+#### configuration
 
 ```xml
-<filter access.apache>
-  @type geoip
+<source>
+  @type forward
+</source>
 
-  # Specify one or more geoip lookup field which has ip address (default: host)
-  # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
+<filter test.geoip>
+  @type    geoip
   geoip_lookup_key  host
-
-  # Specify optional geoip database (using bundled GeoLiteCity databse by default)
-  geoip_database    "/path/to/your/GeoIPCity.dat"
-  # Specify optional geoip2 database
-  # geoip2_database   "/path/to/your/GeoLite2-City.mmdb"
-  # Specify backend library (geoip, geoip2_compat, geoip2_c)
-  backend_library geoip
-
-  # Set adding field with placeholder (more than one settings are required.)
   <record>
-    city            ${city["host"]}
-    latitude        ${latitude["host"]}
-    longitude       ${longitude["host"]}
-    country_code3   ${country_code3["host"]}
-    country         ${country_code["host"]}
-    country_name    ${country_name["host"]}
-    dma             ${dma_code["host"]}
-    area            ${area_code["host"]}
-    region          ${region["host"]}
+    city  ${city.names.en["host"]}
+    lat   ${location.latitude["host"]}
+    lon   ${location.longitude["host"]}
   </record>
-
-  # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
-  skip_adding_null_record  true
-
-  # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
-  log_level         info
 </filter>
+
+<match test.**>
+  @type stdout
+</match>
 ```
 
-## Tutorial
+#### result
+
+```bash
+# forward record with Google's ip address.
+$ echo '{"host":"66.102.9.80","message":"test"}' | fluent-cat test.geoip
+
+# check the result at stdout
+$ tail /var/log/td-agent/td-agent.log
+2016-02-01 12:04:37 +0900 test.geoip: {"host":"66.102.9.80","message":"test","city":"Mountain View","lat":37.4192008972168,"lon":-122.05740356445312}
+```
+
+You can check geoip data format using [utils/dump.rb](https://github.com/okkez/fluent-plugin-geoip/utils/dump.rb).
+
+```
+$ bundle exec ruby urils/dump.rb geoip2 66.102.3.80
+$ bundle exec ruby urils/dump.rb geoip2_compat 66.102.3.80
+$ bundle exec ruby urils/dump.rb geoip 66.102.3.80
+```
 
 ### For GeoipOutput
 
@@ -274,9 +307,9 @@ Note that filter version of geoip plugin does not have handling tag feature.
     @type    geoip
     geoip_lookup_key  host
     <record>
-      lat     ${latitude["host"]}
-      lon     ${longitude["host"]}
-      country ${country_code["host"]}
+      lat     ${location.latitude["host"]}
+      lon     ${location.longitude["host"]}
+      country ${country.iso_code["host"]}
     </record>
     tag     debug.${tag[1]}
   </store>
@@ -299,72 +332,15 @@ $ tail /var/log/td-agent/td-agent.log
 2013-08-04 16:21:32 +0900 debug.geoip: {"host":"66.102.9.80","message":"test","lat":37.4192008972168,"lon":-122.05740356445312,"country":"US"}
 ```
 
-For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.<br />
-http://dev.maxmind.com/geoip/legacy/csv/
+You can check geoip data format using [utils/dump.rb](https://github.com/okkez/fluent-plugin-geoip/utils/dump.rb).
 
-### For GeoipFilter
-
-#### configuration
-
-```xml
-<source>
-  @type forward
-</source>
-
-<filter test.geoip>
-  @type    geoip
-  geoip_lookup_key  host
-  <record>
-    city  ${city["host"]}
-    lat   ${latitude["host"]}
-    lon   ${longitude["host"]}
-  </record>
-</filter>
-
-<match test.**>
-  @type stdout
-</match>
 ```
-
-#### result
-
-```bash
-# forward record with Google's ip address.
-$ echo '{"host":"66.102.9.80","message":"test"}' | fluent-cat test.geoip
-
-# check the result at stdout
-$ tail /var/log/td-agent/td-agent.log
-2016-02-01 12:04:37 +0900 test.geoip: {"host":"66.102.9.80","message":"test","city":"Mountain View","lat":37.4192008972168,"lon":-122.05740356445312}
+$ bundle exec ruby urils/dump.rb geoip2 66.102.3.80
+$ bundle exec ruby urils/dump.rb geoip2_compat 66.102.3.80
+$ bundle exec ruby urils/dump.rb geoip 66.102.3.80
 ```
-
-For more details of geoip data format is described at the page below in section `GeoIP City Edition CSV Database Fields`.<br />
-http://dev.maxmind.com/geoip/legacy/csv/
 
 ## Placeholders
-
-### GeoIP legacy
-
-Provides these placeholders for adding field of geolocate results.<br />
-For more example of geolocating, you can try these websites like [Geo IP Address View](http://www.geoipview.com/) or [View my IP information](http://www.geoiptool.com/en/).
-
-| placeholder attributes         | output example    | type         | note |
-|--------------------------------|-------------------|--------------|------|
-| ${city[lookup_field]}          | "Ithaca"          | varchar(255) |  -   |
-| ${latitude[lookup_field]}      | 42.4277992248535  | decimal      |  -   |
-| ${longitude[lookup_field]}     | -76.4981994628906 | decimal      |  -   |
-| ${country_code3[lookup_field]} | "USA"             | varchar(3)   |  -   |
-| ${country_code[lookup_field]}  | "US"              | varchar(2)   | A two-character ISO 3166-1 country code      |
-| ${country_name[lookup_field]}  | "United States"   | varchar(50)  |  -   |
-| ${dma_code[lookup_field]}      | 555               | unsigned int | **only for US**  |
-| ${area_code[lookup_field]}     | 607               | char(3)      | **only for US**  |
-| ${region[lookup_field]}        | "NY"              | char(2)      | A two character ISO-3166-2 or FIPS 10-4 code |
-
-Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/#GeoIP_City_Edition_CSV_Database_Fields
-
-Related configurations:
-
-* `backend_library`: `geoip` (default)
-* `geoip_database`: path to your GeoLiteCity.dat
 
 ### GeoIP2
 
@@ -405,42 +381,138 @@ Related configurations:
 * `backend_library`: `geoip2_compat` or `geoip2_c`
 * `geoip2_database`: path to your GeoLite2-City.mmdb
 
+### GeoIP legacy
+
+Provides these placeholders for adding field of geolocate results.<br />
+For more example of geolocating, you can try these websites like [Geo IP Address View](http://www.geoipview.com/) or [View my IP information](http://www.geoiptool.com/en/).
+
+| placeholder attributes         | output example    | type         | note |
+|--------------------------------|-------------------|--------------|------|
+| ${city[lookup_field]}          | "Ithaca"          | varchar(255) |  -   |
+| ${latitude[lookup_field]}      | 42.4277992248535  | decimal      |  -   |
+| ${longitude[lookup_field]}     | -76.4981994628906 | decimal      |  -   |
+| ${country_code3[lookup_field]} | "USA"             | varchar(3)   |  -   |
+| ${country_code[lookup_field]}  | "US"              | varchar(2)   | A two-character ISO 3166-1 country code      |
+| ${country_name[lookup_field]}  | "United States"   | varchar(50)  |  -   |
+| ${dma_code[lookup_field]}      | 555               | unsigned int | **only for US**  |
+| ${area_code[lookup_field]}     | 607               | char(3)      | **only for US**  |
+| ${region[lookup_field]}        | "NY"              | char(2)      | A two character ISO-3166-2 or FIPS 10-4 code |
+
+Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/#GeoIP_City_Edition_CSV_Database_Fields
+
+Related configurations:
+
+* `backend_library`: `geoip` (default)
+* `geoip_database`: path to your GeoLiteCity.dat
+
 ## Parameters
-
-### GeoipOutput
-
-* `include_tag_key` (default: false)
-* `tag_key`
-
-Add original tag name into filtered record using SetTagKeyMixin.<br />
-Further details are written at http://docs.fluentd.org/articles/in_exec
-
-* `skip_adding_null_record` (default: false)
-
-Skip adding geoip fields when this valaues to `true`.
-On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
-
-* `tag`
-
-On using this option with tag placeholder like `tag geoip.${tag}` (test code is available at [test_out_geoip.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/test/plugin/test_out_geoip.rb)).
-
-* `flush_interval` (default: 0 sec)
-
-Set buffering time to execute bulk lookup geoip.
 
 ### GeoipFilter
 
 Note that filter version of `geoip` plugin does not have handling `tag` feature.
 
-* `include_tag_key` (default: false)
+#### Plugin helpers
 
-Add original tag name into filtered record using SetTagKeyMixin.<br />
-Further details are written at http://docs.fluentd.org/articles/in_exec
+* [compat_parameters](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-compat_parameters)
+* [inject](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-inject)
 
-* `skip_adding_null_record` (default: false)
+See also [Filter Plugin Overview](https://docs.fluentd.org/v1.0/articles/filter-plugin-overview)
+
+#### Supported sections
+
+* [Inject section configurations](https://docs.fluentd.org/v1.0/articles/inject-section)
+
+#### Parameters
+
+[Plugin Common Paramteters](https://docs.fluentd.org/v1.0/articles/plugin-common-parameters)
+
+**geoip_database** (string) (optional)
+
+* Default value: bundled database `GeoLiteCity.dat`
+
+Path to GeoIP database file.
+
+**geoip2_database** (string) (optional)
+
+* Default value: bundled database `GeoLite2-City.mmdb`.
+
+Path to GeoIP2 database file.
+
+**geoip_lookup_key** (string) (optional)
+
+* Default value: `host`.
+
+Specify one or more geoip lookup field which has IP address.
+
+**skip_adding_null_record** (bool) (optional)
+
+* Default value: `nil`
 
 Skip adding geoip fields when this valaues to `true`.
 On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
+
+**backend_library** (enum) (optional)
+
+* Available values: `geoip`, `geoip2_compat`, `geoip2_c`
+* Default value: `geoip2_c`.
+
+Set backend library.
+
+### GeoipOutput
+
+#### Plugin helpers
+
+* [event_emitter](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-event_emitter)
+* [compat_parameters](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-compat_parameters)
+* [inject](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-inject)
+
+See also [Output Plugin Overview](https://docs.fluentd.org/v1.0/articles/output-plugin-overview)
+
+#### Sections
+
+* [Inject section configurations](https://docs.fluentd.org/v1.0/articles/inject-section)
+* [Buffer section configurations](https://docs.fluentd.org/v1.0/articles/buffer-section)
+
+#### Parameters
+
+[Plugin Common Paramteters](https://docs.fluentd.org/v1.0/articles/plugin-common-parameters)
+
+**geoip_database** (string) (optional)
+
+* Default value: bundled database `GeoLiteCity.dat`
+
+Path to GeoIP database file.
+
+**geoip2_database** (string) (optional)
+
+* Default value: bundled database `GeoLite2-City.mmdb`.
+
+Path to GeoIP2 database file.
+
+**geoip_lookup_key** (string) (optional)
+
+* Default value: `host`.
+
+Specify one or more geoip lookup field which has IP address.
+
+**skip_adding_null_record** (bool) (optional)
+
+* Default value: `nil`
+
+Skip adding geoip fields when this valaues to `true`.
+On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
+
+**backend_library** (enum) (optional)
+
+* Available values: `geoip`, `geoip2_compat`, `geoip2_c`
+* Default value: `geoip2_c`.
+
+Set backend library.
+
+**tag** (string) (optional)
+
+On using this option with tag placeholder like `tag geoip.${tag}` (test code is available at [test_out_geoip.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/test/plugin/test_out_geoip.rb)).
+
 
 ## Articles
 
@@ -462,8 +534,6 @@ http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-r
 ## TODO
 
 Pull requests are very welcome!!
-
-* support [GeoIP2](http://dev.maxmind.com/geoip/geoip2/whats-new-in-geoip2/)
 
 ## Contributing
 
