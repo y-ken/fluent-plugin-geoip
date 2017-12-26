@@ -143,8 +143,8 @@ $ sudo td-agent-gem install fluent-plugin-geoip
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
   skip_adding_null_record  true
 
-  # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
-  log_level         info
+  # Set @log_level (default: warn)
+  @log_level         info
 
   <buffer tag>
     # Set buffering time (default: 0s)
@@ -249,8 +249,8 @@ Note that filter version of geoip plugin does not have handling tag feature.
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
   skip_adding_null_record  true
 
-  # Set log_level for fluentd-v0.10.43 or earlier (default: warn)
-  log_level         info
+  # Set @log_level (default: warn)
+  @log_level         info
 </filter>
 ```
 
