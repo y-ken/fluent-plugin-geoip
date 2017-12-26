@@ -527,8 +527,6 @@ http://developer.smartnews.be/blog/2013/10/03/easy-data-analysis-using-fluentd-r
 
 Pull requests are very welcome!!
 
-* support [GeoIP2](http://dev.maxmind.com/geoip/geoip2/whats-new-in-geoip2/)
-
 ## Contributing
 
 1. Fork it
