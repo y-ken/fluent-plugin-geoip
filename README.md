@@ -126,15 +126,14 @@ $ sudo td-agent-gem install fluent-plugin-geoip
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
-    latitude        ${latitude["host"]}
-    longitude       ${longitude["host"]}
-    country_code3   ${country_code3["host"]}
-    country         ${country_code["host"]}
-    country_name    ${country_name["host"]}
-    dma             ${dma_code["host"]}
-    area            ${area_code["host"]}
-    region          ${region["host"]}
-    city            ${city["host"]}
+    latitude        ${location.latitude["host"]}
+    longitude       ${location.longitude["host"]}
+    country         ${country.iso_code["host"]}
+    country_name    ${country.names.en["host"]}
+    postal_code     ${postal.code["host"]}
+    region          ${subdivisions.0.iso_code["host"]}
+    region_name     ${subdivisions.0.names.en["host"]}
+    city            ${city.names.en["host"]}
   </record>
 
   # Settings for tag
@@ -160,8 +159,8 @@ $ sudo td-agent-gem install fluent-plugin-geoip
   @type geoip
   geoip_lookup_key  user1_host, user2_host
   <record>
-    user1_city      ${city["user1_host"]}
-    user2_city      ${city["user2_host"]}
+    user1_city      ${city.names.en["user1_host"]}
+    user2_city      ${city.names.en["user2_host"]}
   </record>
   tag               geoip.${tag[1]}
 </match>
@@ -180,15 +179,15 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
   <record>
     # lat lon as properties
     # ex. {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
-    location_properties  '{ "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }'
+    location_properties  '{ "lat" : ${location.latitude["host"]}, "lon" : ${location.longitude["host"]} }'
   
     # lat lon as string
     # ex. "37.4192008972168,-122.05740356445312"
-    location_string      ${latitude["host"]},${longitude["host"]}
+    location_string      ${location.latitude["host"]},${location.longitude["host"]}
     
     # GeoJSON (lat lon as array) is useful for Kibana's bettermap.
     # ex. [-122.05740356445312, 37.4192008972168]
-    location_array       '[${longitude["host"]},${latitude["host"]}]'
+    location_array       '[${location.longitude["host"]},${location.latitude["host"]}]'
   </record>
   tag                    geoip.${tag[1]}
 
@@ -204,9 +203,9 @@ On the case of using td-agent3 (v1-config), it have to quote `{ ... }` or `[ ...
   @type                  geoip
   geoip_lookup_key       host
   <record>
-    location_properties  '{ "lat" : ${latitude["host"]}, "lon" : ${longitude["host"]} }'
-    location_string      ${latitude["host"]},${longitude["host"]}
-    location_array       '[${longitude["host"]},${latitude["host"]}]'
+    location_properties  '{ "lat" : ${location.latitude["host"]}, "lon" : ${location.longitude["host"]} }'
+    location_string      ${location.latitude["host"]},${location.longitude["host"]}
+    location_array       '[${location.longitude["host"]},${location.latitude["host"]}]'
   </record>
   remove_tag_prefix      access.
   tag                    geoip.${tag}
@@ -227,23 +226,20 @@ Note that filter version of geoip plugin does not have handling tag feature.
   geoip_lookup_key  host
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
-  geoip_database    "/path/to/your/GeoIPCity.dat"
+  # geoip_database    "/path/to/your/GeoIPCity.dat"
   # Specify optional geoip2 database
-  # geoip2_database   "/path/to/your/GeoLite2-City.mmdb"
-  # Specify backend library (geoip, geoip2_compat, geoip2_c)
-  backend_library geoip
+  # geoip2_database   "/path/to/your/GeoLite2-City.mmdb" (using bundled GeoLite2-City.mmdb by default)
+  # Specify backend library (geoip2_c, geoip, geoip2_compat)
+  backend_library geoip2_c
 
   # Set adding field with placeholder (more than one settings are required.)
   <record>
-    city            ${city["host"]}
-    latitude        ${latitude["host"]}
-    longitude       ${longitude["host"]}
-    country_code3   ${country_code3["host"]}
-    country         ${country_code["host"]}
-    country_name    ${country_name["host"]}
-    dma             ${dma_code["host"]}
-    area            ${area_code["host"]}
-    region          ${region["host"]}
+    city            ${city.names.en["host"]}
+    latitude        ${location.latitude["host"]}
+    longitude       ${location.longitude["host"]}
+    country         ${country.iso_code["host"]}
+    country_name    ${country.names.en["host"]}
+    postal_code     ${postal.code["host"]}
   </record>
 
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
@@ -274,9 +270,9 @@ Note that filter version of geoip plugin does not have handling tag feature.
     @type    geoip
     geoip_lookup_key  host
     <record>
-      lat     ${latitude["host"]}
-      lon     ${longitude["host"]}
-      country ${country_code["host"]}
+      lat     ${location.latitude["host"]}
+      lon     ${location.longitude["host"]}
+      country ${country.iso_code["host"]}
     </record>
     tag     debug.${tag[1]}
   </store>
@@ -315,9 +311,9 @@ http://dev.maxmind.com/geoip/legacy/csv/
   @type    geoip
   geoip_lookup_key  host
   <record>
-    city  ${city["host"]}
-    lat   ${latitude["host"]}
-    lon   ${longitude["host"]}
+    city  ${city.names.en["host"]}
+    lat   ${location.latitude["host"]}
+    lon   ${location.longitude["host"]}
   </record>
 </filter>
 
