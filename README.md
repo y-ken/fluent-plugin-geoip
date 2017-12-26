@@ -161,8 +161,6 @@ Note that filter version of geoip plugin does not have handling tag feature.
 
 It is a sample to get friendly geo point recdords for elasticsearch with Yajl (JSON) parser.<br />
 
-**Notice** v0 config will be deprecated in the future.
-
 ```
 <filter access.apache>
   @type                  geoip
