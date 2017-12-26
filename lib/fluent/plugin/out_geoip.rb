@@ -22,7 +22,7 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
   end
 
   def configure(conf)
-    compat_parameters_convert(conf, :buffer, default_chunk_key: 'tag')
+    compat_parameters_convert(conf, :buffer, :inject, default_chunk_key: 'tag')
     super
     raise Fluetn::ConfigError, "chunk key must include 'tag'" unless @chunk_key_tag
     placeholder_validate!(:tag, @tag) if @tag

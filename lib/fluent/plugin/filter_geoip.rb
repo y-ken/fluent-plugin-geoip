@@ -5,6 +5,8 @@ module Fluent::Plugin
   class GeoipFilter < Fluent::Plugin::Filter
     Fluent::Plugin.register_filter('geoip', self)
 
+    helpers :compat_parameters, :inject
+
     config_param :geoip_database, :string, default: File.expand_path('../../../data/GeoLiteCity.dat', __dir__)
     config_param :geoip2_database, :string, default: File.expand_path('../../../data/GeoLite2-City.mmdb', __dir__)
     config_param :geoip_lookup_key, :string, default: 'host'
@@ -15,6 +17,7 @@ module Fluent::Plugin
     config_param :backend_library, :enum, list: Fluent::GeoIP::BACKEND_LIBRARIES, default: :geoip2_c
 
     def configure(conf)
+      compat_parameters_convert(conf, :inject)
       super
       @geoip = Fluent::GeoIP.new(self, conf)
     end
@@ -24,6 +27,7 @@ module Fluent::Plugin
       if filtered_record
         record = filtered_record
       end
+      record = inject_values_to_record(tag, time, record)
       record
     end
 
