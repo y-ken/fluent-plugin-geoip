@@ -130,6 +130,27 @@ class GeoipFilterTest < Test::Unit::TestCase
   end
 
   sub_test_case "geoip2_c" do
+    def test_filter_with_include_tag_key
+      config = %[
+        backend_library   geoip2_c
+        geoip_lookup_key  ip.origin, ip.dest
+        <record>
+          origin_country  ${country.iso_code['ip.origin']}
+          dest_country    ${country.iso_code['ip.dest']}
+        </record>
+        include_tag_key   true
+      ]
+      messages = [
+        {'ip.origin' => '66.102.3.80', 'ip.dest' => '8.8.8.8'}
+      ]
+      expected = [
+        {'ip.origin' => '66.102.3.80', 'ip.dest' => '8.8.8.8',
+         'origin_country' => 'US', 'dest_country' => 'US', 'tag' => 'test' }
+      ]
+      filtered = filter(config, messages)
+      assert_equal(expected, filtered)
+    end
+
     def test_filter_with_dot_key
       config = %[
         backend_library   geoip2_c
@@ -717,6 +738,25 @@ class GeoipFilterTest < Test::Unit::TestCase
       end
       assert_equal(expected, filtered)
     end
+
+    def test_filter_with_include_tag_key
+      config = %[
+        backend_library geoip2_compat
+        geoip_lookup_key  host
+        enable_key_city   geoip_city
+        include_tag_key   true
+      ]
+      messages = [
+        {'host' => '66.102.3.80', 'message' => 'valid ip'},
+        {'message' => 'missing field'},
+      ]
+      expected = [
+        {'host' => '66.102.3.80', 'message' => 'valid ip', 'geoip_city' => 'Mountain View', 'tag' => 'test'},
+        {'message' => 'missing field', 'geoip_city' => nil, 'tag' => 'test'},
+      ]
+      filtered = filter(config, messages)
+      assert_equal(expected, filtered)
+    end
   end
 
   sub_test_case "geoip legacy" do
@@ -1094,6 +1134,24 @@ class GeoipFilterTest < Test::Unit::TestCase
       filtered = filter(config, messages) do |d|
         setup_geoip_mock(d)
       end
+      assert_equal(expected, filtered)
+    end
+
+    def test_filter_with_include_tag_key
+      config = %[
+        geoip_lookup_key  host
+        enable_key_city   geoip_city
+        include_tag_key   true
+      ]
+      messages = [
+        {'host' => '66.102.3.80', 'message' => 'valid ip'},
+        {'message' => 'missing field'},
+      ]
+      expected = [
+        {'host' => '66.102.3.80', 'message' => 'valid ip', 'geoip_city' => 'Mountain View', 'tag' => 'test'},
+        {'message' => 'missing field', 'geoip_city' => nil, 'tag' => 'test'},
+      ]
+      filtered = filter(config, messages)
       assert_equal(expected, filtered)
     end
   end

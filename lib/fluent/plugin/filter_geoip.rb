@@ -9,11 +9,11 @@ module Fluent
     config_param :geoip_lookup_key, :string, :default => 'host'
     config_param :skip_adding_null_record, :bool, :default => false
 
+    include Fluent::SetTagKeyMixin
     config_set_default :include_tag_key, false
 
     config_param :hostname_command, :string, :default => 'hostname'
 
-    config_param :flush_interval, :time, :default => 0
     config_param :log_level, :string, :default => 'warn'
 
     config_param :backend_library, :enum, :list => Fluent::GeoIP::BACKEND_LIBRARIES, :default => :geoip
@@ -27,6 +27,7 @@ module Fluent
       new_es = MultiEventStream.new
       es.each do |time, record|
         begin
+          filter_record(tag, time, record)
           filtered_record = @geoip.add_geoip_field(record)
           new_es.add(time, filtered_record) if filtered_record
         rescue => e
