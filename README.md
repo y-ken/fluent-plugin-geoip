@@ -78,7 +78,7 @@ before use, install dependent library as:
 
 ```bash
 # for RHEL/CentOS
-$ sudo yum group install "Development Tools"
+$ sudo yum groupinstall "Development Tools"
 $ sudo yum install geoip-devel --enablerepo=epel
 
 # for Ubuntu/Debian
