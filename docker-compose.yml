@@ -1,31 +1,38 @@
-version: "2"
+version: "3"
 services:
+  test-ruby2.5:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile-ruby2.5
+    env_file:
+      - env
+    command: tail -f /dev/null
   test-ruby2.4:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile-ruby2.4
     env_file:
       - env
-    command: ruby -run -e httpd .
+    command: tail -f /dev/null
   test-ruby2.3:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile-ruby2.3
     env_file:
       - env
-    command: ruby -run -e httpd .
+    command: tail -f /dev/null
   test-ruby2.2:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile-ruby2.2
     env_file:
       - env
-    command: ruby -run -e httpd .
+    command: tail -f /dev/null
   test-ruby2.1:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile-ruby2.1
     env_file:
       - env
-    command: ruby -run -e httpd .
+    command: tail -f /dev/null
 
