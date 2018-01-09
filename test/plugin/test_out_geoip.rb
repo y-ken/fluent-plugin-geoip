@@ -9,7 +9,9 @@ class GeoipOutputTest < Test::Unit::TestCase
 
   CONFIG = %[
     geoip_lookup_key  host
-    enable_key_city   geoip_city
+    <record>
+      geoip_city ${city['host']}
+    </record>
     tag               geoip.${tag[1]}
   ]
 
@@ -24,44 +26,10 @@ class GeoipOutputTest < Test::Unit::TestCase
       end
     end
 
-    test "missing required parameters" do
+    test "obsoleted configuration" do
       assert_raise(Fluent::ConfigError) {
-        create_driver('enable_key_cities')
+        create_driver('enable_key_city geoip_city')
       }
-    end
-
-    test "minimum" do
-      d = create_driver %[
-        enable_key_city   geoip_city
-        tag               geoip.${tag[1]}
-      ]
-      assert_equal 'geoip_city', d.instance.config['enable_key_city']
-    end
-
-    test "invalid key name" do
-      assert_raise(Fluent::ConfigError.new("geoip: unsupported key cities")) do
-        create_driver('enable_key_cities')
-      end
-    end
-
-    test "multiple key config" do
-      d = create_driver %[
-        geoip_lookup_key  from.ip, to.ip
-        enable_key_city   from_city, to_city
-        tag               geoip.${tag[1]}
-      ]
-      assert_equal 'from_city, to_city', d.instance.config['enable_key_city']
-    end
-
-    test "multiple key config (bad configure)" do
-      assert_raise(Fluent::ConfigError) do
-        create_driver %[
-          geoip_lookup_key  from.ip, to.ip
-          enable_key_city   from_city
-          enable_key_region from_region
-          tag               geoip.${tag[1]}
-        ]
-      end
     end
 
     test "invalid json structure w/ Ruby hash like" do
@@ -701,24 +669,6 @@ class GeoipOutputTest < Test::Unit::TestCase
   end
 
   sub_test_case "geoip legacy" do
-    def test_emit
-      d1 = create_driver(%[
-        backend_library geoip
-        geoip_lookup_key  host
-        enable_key_city   geoip_city
-        tag               geoip.${tag[1]}
-      ])
-      d1.run(default_tag: 'input.access') do
-        d1.feed({'host' => '66.102.3.80', 'message' => 'valid ip'})
-        d1.feed({'message' => 'missing field'})
-      end
-      events = d1.events
-      assert_equal 2, events.length
-      assert_equal 'geoip.access', events[0][0] # tag
-      assert_equal 'Mountain View', events[0][2]['geoip_city']
-      assert_equal nil, events[1][2]['geoip_city']
-    end
-
     def test_emit_tag_option
       d1 = create_driver(%[
         backend_library geoip
@@ -781,7 +731,9 @@ class GeoipOutputTest < Test::Unit::TestCase
       d1 = create_driver(%[
         backend_library geoip
         geoip_lookup_key  host.ip
-        enable_key_city   geoip_city
+        <record>
+          geoip_city ${city['host.ip']}
+        </record>
         tag               geoip.${tag[1]}
       ])
       d1.run(default_tag: 'input.access') do
@@ -852,7 +804,10 @@ class GeoipOutputTest < Test::Unit::TestCase
       d1 = create_driver(%[
         backend_library geoip
         geoip_lookup_key  from.ip, to.ip
-        enable_key_city   from_city, to_city
+        <record>
+          from_city ${city['from.ip']}
+          to_city   ${city['to.ip']}
+        </record>
         tag               geoip.${tag[1]}
       ])
       d1.run(default_tag: 'input.access') do
@@ -872,8 +827,12 @@ class GeoipOutputTest < Test::Unit::TestCase
       d1 = create_driver(%[
         backend_library geoip
         geoip_lookup_key  from.ip, to.ip
-        enable_key_city   from_city, to_city
-        enable_key_country_name from_country, to_country
+        <record>
+          from_city    ${city['from.ip']}
+          from_country ${country_name['from.ip']}
+          to_city      ${city['to.ip']}
+          to_country   ${country_name['to.ip']}
+        </record>
         tag               geoip.${tag[1]}
       ])
       d1.run(default_tag: 'input.access') do
