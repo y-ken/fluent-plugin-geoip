@@ -29,20 +29,8 @@ module Fluent
       @skip_adding_null_record = plugin.skip_adding_null_record
       @log = plugin.log
 
-      # enable_key_* format (legacy format)
-      conf.keys.select{|k| k =~ /^enable_key_/}.each do |key|
-        geoip_key = key.sub('enable_key_','')
-        raise Fluent::ConfigError, "geoip: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
-        @geoip_lookup_key.zip(conf[key].split(/\s*,\s*/)).each do |lookup_field,record_key|
-          if record_key.nil?
-            raise Fluent::ConfigError, "geoip: missing value found at '#{key} #{lookup_field}'"
-          end
-          @map[record_key] = "${#{geoip_key}['#{lookup_field}']}"
-        end
-      end
-      if conf.keys.select{|k| k =~ /^enable_key_/}.size > 0
-        log.warn "geoip: 'enable_key_*' config format is obsoleted. use <record></record> directive for now."
-        log.warn "geoip: for further details referable to https://github.com/y-ken/fluent-plugin-geoip"
+      if conf.keys.any? {|k| k =~ /^enable_key_/ }
+        raise Fluent::ConfigError, "geoip: 'enable_key_*' config format is obsoleted. use <record></record> directive instead."
       end
 
       # <record></record> directive

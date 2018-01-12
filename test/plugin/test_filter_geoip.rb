@@ -10,7 +10,9 @@ class GeoipFilterTest < Test::Unit::TestCase
 
   CONFIG = %[
     geoip_lookup_key  host
-    enable_key_city   geoip_city
+    <record>
+      geoip_city ${city.names.en['host']}
+    </record>
   ]
 
   def create_driver(conf = CONFIG, syntax: :v1)
@@ -44,39 +46,13 @@ class GeoipFilterTest < Test::Unit::TestCase
       }
     end
 
-    test "missing required parameters" do
+    test "obsoleted configuration" do
       assert_raise(Fluent::ConfigError) {
-        create_driver('enable_key_cities')
-      }
-    end
-
-    test "minimum" do
-      d = create_driver %[
-        enable_key_city   geoip_city
-      ]
-      assert_equal 'geoip_city', d.instance.config['enable_key_city']
-    end
-
-    test "multiple key config" do
-      d = create_driver %[
-        geoip_lookup_key  from.ip, to.ip
-        enable_key_city   from_city, to_city
-      ]
-      assert_equal 'from_city, to_city', d.instance.config['enable_key_city']
-    end
-
-    test "multiple key config (bad configure)" do
-      assert_raise(Fluent::ConfigError) {
-        create_driver %[
-          geoip_lookup_key  from.ip, to.ip
-          enable_key_city   from_city
-          enable_key_region from_region
-        ]
+        create_driver('enable_key_city geoip_city')
       }
     end
 
     test "invalid json structure w/ Ruby hash like" do
-
       assert_raise(Fluent::ConfigParseError) {
         create_driver %[
           geoip_lookup_key  host
@@ -730,7 +706,9 @@ class GeoipFilterTest < Test::Unit::TestCase
       config = %[
         backend_library geoip
         geoip_lookup_key  host
-        enable_key_city   geoip_city
+        <record>
+          geoip_city ${city['host']}
+        </record>
       ]
       messages = [
         {'host' => '66.102.3.80', 'message' => 'valid ip'},
@@ -768,7 +746,9 @@ class GeoipFilterTest < Test::Unit::TestCase
       config = %[
         backend_library geoip
         geoip_lookup_key  host.ip
-        enable_key_city   geoip_city
+        <record>
+          geoip_city ${city['host.ip']}
+        </record>
       ]
       messages = [
         {'host' => {'ip' => '66.102.3.80'}, 'message' => 'valid ip'},
@@ -835,7 +815,10 @@ class GeoipFilterTest < Test::Unit::TestCase
       config = %[
         backend_library geoip
         geoip_lookup_key  from.ip, to.ip
-        enable_key_city   from_city, to_city
+        <record>
+          from_city ${city['from.ip']}
+          to_city   ${city['to.ip']}
+        </record>
       ]
       messages = [
         {'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}},
@@ -854,8 +837,12 @@ class GeoipFilterTest < Test::Unit::TestCase
       config = %[
         backend_library geoip
         geoip_lookup_key  from.ip, to.ip
-        enable_key_city   from_city, to_city
-        enable_key_country_name from_country, to_country
+        <record>
+          from_city    ${city['from.ip']}
+          from_country ${country_name['from.ip']}
+          to_city      ${city['to.ip']}
+          to_country   ${country_name['to.ip']}
+        </record>
       ]
       messages = [
         {'from' => {'ip' => '66.102.3.80'}, 'to' => {'ip' => '125.54.15.42'}},
