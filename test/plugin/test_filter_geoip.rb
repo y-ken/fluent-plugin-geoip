@@ -52,6 +52,19 @@ class GeoipFilterTest < Test::Unit::TestCase
       }
     end
 
+    test "deprecated configuration geoip_lookup_key" do
+      conf = %[
+        geoip_lookup_key  host,ip
+        <record>
+          geoip_city ${city['host']}
+        </record>
+        tag               geoip.${tag[1]}
+      ]
+      d = create_driver(conf)
+      assert_equal(["host", "ip"],
+                   d.instance.instance_variable_get(:@geoip).instance_variable_get(:@geoip_lookup_keys))
+    end
+
     test "invalid json structure w/ Ruby hash like" do
       assert_raise(Fluent::ConfigParseError) {
         create_driver %[

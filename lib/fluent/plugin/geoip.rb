@@ -25,6 +25,9 @@ module Fluent
     def initialize(plugin, conf)
       @map = {}
       @geoip_lookup_keys = plugin.geoip_lookup_keys
+      if plugin.geoip_lookup_key
+        @geoip_lookup_keys = plugin.geoip_lookup_key.split(/\s*,\s*/)
+      end
       @skip_adding_null_record = plugin.skip_adding_null_record
       @log = plugin.log
 
