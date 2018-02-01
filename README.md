@@ -117,7 +117,7 @@ Note that filter version of geoip plugin does not have handling tag feature.
 
   # Specify one or more geoip lookup field which has ip address (default: host)
   # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
-  geoip_lookup_key  host
+  geoip_lookup_keys host
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
   # geoip_database    "/path/to/your/GeoIPCity.dat"
@@ -149,7 +149,7 @@ Note that filter version of geoip plugin does not have handling tag feature.
 ```xml
 <filter access.apache>
   @type geoip
-  geoip_lookup_key  user1_host, user2_host
+  geoip_lookup_keys user1_host, user2_host
   <record>
     user1_city      ${city.names.en["user1_host"]}
     user2_city      ${city.names.en["user2_host"]}
@@ -164,7 +164,7 @@ It is a sample to get friendly geo point recdords for elasticsearch with Yajl (J
 ```
 <filter access.apache>
   @type                  geoip
-  geoip_lookup_key       host
+  geoip_lookup_keys      host
   <record>
     # lat lon as properties
     # ex. {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
@@ -189,7 +189,7 @@ On the case of using td-agent3 (v1-config), it have to quote `{ ... }` or `[ ...
 ```
 <filter access.apache>
   @type                  geoip
-  geoip_lookup_key       host
+  geoip_lookup_keys      host
   <record>
     location_properties  '{ "lat" : ${location.latitude["host"]}, "lon" : ${location.longitude["host"]} }'
     location_string      ${location.latitude["host"]},${location.longitude["host"]}
@@ -207,7 +207,7 @@ On the case of using td-agent3 (v1-config), it have to quote `{ ... }` or `[ ...
 
   # Specify one or more geoip lookup field which has ip address (default: host)
   # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
-  geoip_lookup_key  host
+  geoip_lookup_keys host
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
   geoip_database    "/path/to/your/GeoIPCity.dat"
@@ -255,9 +255,10 @@ On the case of using td-agent3 (v1-config), it have to quote `{ ... }` or `[ ...
   @type forward
 </source>
 
+
 <filter test.geoip>
   @type    geoip
-  geoip_lookup_key  host
+  geoip_lookup_keys  host
   <record>
     city  ${city.names.en["host"]}
     lat   ${location.latitude["host"]}
@@ -305,7 +306,7 @@ $ bundle exec ruby urils/dump.rb geoip 66.102.3.80
   </store>
   <store>
     @type    geoip
-    geoip_lookup_key  host
+    geoip_lookup_keys  host
     <record>
       lat     ${location.latitude["host"]}
       lon     ${location.longitude["host"]}
@@ -438,11 +439,17 @@ Path to GeoIP database file.
 
 Path to GeoIP2 database file.
 
-**geoip_lookup_key** (string) (optional)
+**geoip_lookup_keys** (array) (optional)
 
-* Default value: `host`.
+* Default_value: `["host"]`
 
 Specify one or more geoip lookup field which has IP address.
+
+**geoip_lookup_key** (string) (optional) (deprecated)
+
+* Default value: `nil`.
+
+Use geoip_lookup_keys instead.
 
 **skip_adding_null_record** (bool) (optional)
 
@@ -489,11 +496,17 @@ Path to GeoIP database file.
 
 Path to GeoIP2 database file.
 
-**geoip_lookup_key** (string) (optional)
+**geoip_lookup_keys** (array) (optional)
 
-* Default value: `host`.
+* Default value: `["host"]`
 
 Specify one or more geoip lookup field which has IP address.
+
+**geoip_lookup_key** (string) (optional) (deprecated)
+
+* Default value: `nil`.
+
+Use geoip_lookup_keys instead.
 
 **skip_adding_null_record** (bool) (optional)
 

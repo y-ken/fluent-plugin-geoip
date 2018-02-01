@@ -8,7 +8,8 @@ class Fluent::Plugin::GeoipOutput < Fluent::Plugin::Output
 
   config_param :geoip_database, :string, default: File.expand_path('../../../data/GeoLiteCity.dat', __dir__)
   config_param :geoip2_database, :string, default: File.expand_path('../../../data/GeoLite2-City.mmdb', __dir__)
-  config_param :geoip_lookup_key, :string, default: 'host'
+  config_param :geoip_lookup_keys, :array, value_type: :string, default: ["host"]
+  config_param :geoip_lookup_key, :string, default: nil, deprecated: "Use geoip_lookup_keys instead"
   config_param :tag, :string, default: nil
   config_param :skip_adding_null_record, :bool, default: false
 
