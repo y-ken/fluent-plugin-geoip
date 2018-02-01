@@ -439,11 +439,17 @@ Path to GeoIP database file.
 
 Path to GeoIP2 database file.
 
-**geoip_lookup_key** (string) (optional)
+**geoip_lookup_keys** (array) (optional)
 
-* Default value: `host`.
+* Default_value: `["host"]`
 
 Specify one or more geoip lookup field which has IP address.
+
+**geoip_lookup_key** (string) (optional) (deprecated)
+
+* Default value: `nil`.
+
+Use geoip_lookup_keys instead.
 
 **skip_adding_null_record** (bool) (optional)
 
@@ -490,11 +496,17 @@ Path to GeoIP database file.
 
 Path to GeoIP2 database file.
 
-**geoip_lookup_key** (string) (optional)
+**geoip_lookup_keys** (array) (optional)
 
-* Default value: `host`.
+* Default value: `["host"]`
 
 Specify one or more geoip lookup field which has IP address.
+
+**geoip_lookup_key** (string) (optional) (deprecated)
+
+* Default value: `nil`.
+
+Use geoip_lookup_keys instead.
 
 **skip_adding_null_record** (bool) (optional)
 
