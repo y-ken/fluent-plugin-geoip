@@ -31,12 +31,12 @@ class GeoipFilterTest < Test::Unit::TestCase
   end
 
   def setup_geoip_mock(d)
-    geoip = d.instance.instance_variable_get(:@geoip)
+    plugin = d.instance
     db = Object.new
     def db.lookup(ip)
       {}
     end
-    geoip.instance_variable_set(:@geoip, db)
+    plugin.instance_variable_set(:@geoip, db)
   end
 
   sub_test_case "configure" do
@@ -58,11 +58,9 @@ class GeoipFilterTest < Test::Unit::TestCase
         <record>
           geoip_city ${city['host']}
         </record>
-        tag               geoip.${tag[1]}
       ]
       d = create_driver(conf)
-      assert_equal(["host", "ip"],
-                   d.instance.instance_variable_get(:@geoip).instance_variable_get(:@geoip_lookup_keys))
+      assert_equal(["host", "ip"], d.instance.geoip_lookup_keys)
     end
 
     test "invalid json structure w/ Ruby hash like" do
