@@ -69,7 +69,6 @@ Note that filter version of geoip plugin does not have handling tag feature.
   @type geoip
 
   # Specify one or more geoip lookup field which has ip address (default: host)
-  # in the case of accessing nested value, delimit keys by dot like 'host.ip'.
   geoip_lookup_keys host
 
   # Specify optional geoip database (using bundled GeoLiteCity databse by default)
@@ -189,6 +188,12 @@ We can avoid this behavior changing field order in `<record>` like following:
   skip_adding_null_record true
 </filter>
 ```
+
+#### Tips: nested attributes for geoip_lookup_keys
+
+See [Record Accessor Plugin](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-record_accessor#syntax)
+
+**NOTE** Since v1.3.0 does not interpret `host.ip` as nested attribute.
 
 #### Advanced config samples
 
