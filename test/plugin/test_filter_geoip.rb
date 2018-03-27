@@ -195,21 +195,21 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive
       config = %[
         backend_library   geoip2_c
-        geoip_lookup_keys from.ip
+        geoip_lookup_keys $.from.ip
         <record>
-          from_city       ${city.names.en['from.ip']}
-          from_country    ${country.names.en['from.ip']}
-          latitude        ${location.latitude['from.ip']}
-          longitude       ${location.longitude['from.ip']}
-          float_concat    ${location.latitude['from.ip']},${location.longitude['from.ip']}
-          float_array     [${location.longitude['from.ip']}, ${location.latitude['from.ip']}]
-          float_nest      { "lat" : ${location.latitude['from.ip']}, "lon" : ${location.longitude['from.ip']}}
-          string_concat   ${city.names.en['from.ip']},${country.names.en['from.ip']}
-          string_array    [${city.names.en['from.ip']}, ${country.names.en['from.ip']}]
-          string_nest     { "city" : ${city.names.en['from.ip']}, "country_name" : ${country.names.en['from.ip']}}
+          from_city       ${city.names.en['$.from.ip']}
+          from_country    ${country.names.en['$.from.ip']}
+          latitude        ${location.latitude['$.from.ip']}
+          longitude       ${location.longitude['$.from.ip']}
+          float_concat    ${location.latitude['$.from.ip']},${location.longitude['$.from.ip']}
+          float_array     [${location.longitude['$.from.ip']}, ${location.latitude['$.from.ip']}]
+          float_nest      { "lat" : ${location.latitude['$.from.ip']}, "lon" : ${location.longitude['$.from.ip']}}
+          string_concat   ${city.names.en['$.from.ip']},${country.names.en['$.from.ip']}
+          string_array    [${city.names.en['$.from.ip']}, ${country.names.en['$.from.ip']}]
+          string_nest     { "city" : ${city.names.en['$.from.ip']}, "country_name" : ${country.names.en['$.from.ip']}}
           unknown_city    ${city.names.en['unknown_key']}
           undefined       ${city.names.en['undefined']}
-          broken_array1   [${location.longitude['from.ip']}, ${location.latitude['undefined']}]
+          broken_array1   [${location.longitude['$.from.ip']}, ${location.latitude['undefined']}]
           broken_array2   [${location.longitude['undefined']}, ${location.latitude['undefined']}]
         </record>
       ]
@@ -262,13 +262,13 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive_multiple_record
       config = %[
         backend_library   geoip2_c
-        geoip_lookup_keys from.ip, to.ip
+        geoip_lookup_keys $.from.ip, $.to.ip
         <record>
-          from_city       ${city.names.en['from.ip']}
-          to_city         ${city.names.en['to.ip']}
-          from_country    ${country.names.en['from.ip']}
-          to_country      ${country.names.en['to.ip']}
-          string_array    [${country.names.en['from.ip']}, ${country.names.en['to.ip']}]
+          from_city       ${city.names.en['$.from.ip']}
+          to_city         ${city.names.en['$.to.ip']}
+          from_country    ${country.names.en['$.from.ip']}
+          to_country      ${country.names.en['$.to.ip']}
+          string_array    [${country.names.en['$.from.ip']}, ${country.names.en['$.to.ip']}]
         </record>
       ]
       messages = [
@@ -415,6 +415,26 @@ class GeoipFilterTest < Test::Unit::TestCase
       end
       assert_equal(expected, filtered)
     end
+
+    def test_filter_nested_attr_bracket_style
+      config = %[
+        backend_library geoip2_c
+        geoip_lookup_keys  $["host"]["ip"]
+        <record>
+          geoip_city ${city.names.en['$["host"]["ip"]']}
+        </record>
+      ]
+      messages = [
+        {'host' => {'ip' => '66.102.3.80'}, 'message' => 'valid ip'},
+        {'message' => 'missing field'}
+      ]
+      expected = [
+        {'host' => {'ip' => '66.102.3.80'}, 'message' => 'valid ip', 'geoip_city' => 'Mountain View'},
+        {'message' => 'missing field', 'geoip_city' => nil}
+      ]
+      filtered = filter(config, messages)
+      assert_equal(expected, filtered)
+    end
   end
 
   sub_test_case "geoip2_compat" do
@@ -490,21 +510,21 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive
       config = %[
         backend_library   geoip2_compat
-        geoip_lookup_keys from.ip
+        geoip_lookup_keys $.from.ip
         <record>
-          from_city       ${city['from.ip']}
-          from_country    ${country_name['from.ip']}
-          latitude        ${latitude['from.ip']}
-          longitude       ${longitude['from.ip']}
-          float_concat    ${latitude['from.ip']},${longitude['from.ip']}
-          float_array     [${longitude['from.ip']}, ${latitude['from.ip']}]
-          float_nest      { "lat" : ${latitude['from.ip']}, "lon" : ${longitude['from.ip']}}
-          string_concat   ${city['from.ip']},${country_name['from.ip']}
-          string_array    [${city['from.ip']}, ${country_name['from.ip']}]
-          string_nest     { "city" : ${city['from.ip']}, "country_name" : ${country_name['from.ip']}}
+          from_city       ${city['$.from.ip']}
+          from_country    ${country_name['$.from.ip']}
+          latitude        ${latitude['$.from.ip']}
+          longitude       ${longitude['$.from.ip']}
+          float_concat    ${latitude['$.from.ip']},${longitude['$.from.ip']}
+          float_array     [${longitude['$.from.ip']}, ${latitude['$.from.ip']}]
+          float_nest      { "lat" : ${latitude['$.from.ip']}, "lon" : ${longitude['$.from.ip']}}
+          string_concat   ${city['$.from.ip']},${country_name['$.from.ip']}
+          string_array    [${city['$.from.ip']}, ${country_name['$.from.ip']}]
+          string_nest     { "city" : ${city['$.from.ip']}, "country_name" : ${country_name['$.from.ip']}}
           unknown_city    ${city['unknown_key']}
           undefined       ${city['undefined']}
-          broken_array1   [${longitude['from.ip']}, ${latitude['undefined']}]
+          broken_array1   [${longitude['$.from.ip']}, ${latitude['undefined']}]
           broken_array2   [${longitude['undefined']}, ${latitude['undefined']}]
         </record>
       ]
@@ -557,13 +577,13 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive_multiple_record
       config = %[
         backend_library   geoip2_compat
-        geoip_lookup_keys from.ip, to.ip
+        geoip_lookup_keys $.from.ip, $.to.ip
         <record>
-          from_city       ${city['from.ip']}
-          to_city         ${city['to.ip']}
-          from_country    ${country_name['from.ip']}
-          to_country      ${country_name['to.ip']}
-          string_array    [${country_name['from.ip']}, ${country_name['to.ip']}]
+          from_city       ${city['$.from.ip']}
+          to_city         ${city['$.to.ip']}
+          from_country    ${country_name['$.from.ip']}
+          to_country      ${country_name['$.to.ip']}
+          string_array    [${country_name['$.from.ip']}, ${country_name['$.to.ip']}]
         </record>
       ]
       messages = [
@@ -756,9 +776,9 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_nested_attr
       config = %[
         backend_library geoip
-        geoip_lookup_keys  host.ip
+        geoip_lookup_keys  $.host.ip
         <record>
-          geoip_city ${city['host.ip']}
+          geoip_city ${city['$.host.ip']}
         </record>
       ]
       messages = [
@@ -825,10 +845,10 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_multiple_key
       config = %[
         backend_library geoip
-        geoip_lookup_keys  from.ip, to.ip
+        geoip_lookup_keys  $.from.ip, $.to.ip
         <record>
-          from_city ${city['from.ip']}
-          to_city   ${city['to.ip']}
+          from_city ${city['$.from.ip']}
+          to_city   ${city['$.to.ip']}
         </record>
       ]
       messages = [
@@ -847,12 +867,12 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_multiple_key_multiple_record
       config = %[
         backend_library geoip
-        geoip_lookup_keys  from.ip, to.ip
+        geoip_lookup_keys  $.from.ip, $.to.ip
         <record>
-          from_city    ${city['from.ip']}
-          from_country ${country_name['from.ip']}
-          to_city      ${city['to.ip']}
-          to_country   ${country_name['to.ip']}
+          from_city    ${city['$.from.ip']}
+          from_country ${country_name['$.from.ip']}
+          to_city      ${city['$.to.ip']}
+          to_country   ${country_name['$.to.ip']}
         </record>
       ]
       messages = [
@@ -891,21 +911,21 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive
       config = %[
         backend_library geoip
-        geoip_lookup_keys from.ip
+        geoip_lookup_keys $.from.ip
         <record>
-          from_city       ${city['from.ip']}
-          from_country    ${country_name['from.ip']}
-          latitude        ${latitude['from.ip']}
-          longitude       ${longitude['from.ip']}
-          float_concat    ${latitude['from.ip']},${longitude['from.ip']}
-          float_array     [${longitude['from.ip']}, ${latitude['from.ip']}]
-          float_nest      { "lat" : ${latitude['from.ip']}, "lon" : ${longitude['from.ip']}}
-          string_concat   ${city['from.ip']},${country_name['from.ip']}
-          string_array    [${city['from.ip']}, ${country_name['from.ip']}]
-          string_nest     { "city" : ${city['from.ip']}, "country_name" : ${country_name['from.ip']}}
+          from_city       ${city['$.from.ip']}
+          from_country    ${country_name['$.from.ip']}
+          latitude        ${latitude['$.from.ip']}
+          longitude       ${longitude['$.from.ip']}
+          float_concat    ${latitude['$.from.ip']},${longitude['$.from.ip']}
+          float_array     [${longitude['$.from.ip']}, ${latitude['$.from.ip']}]
+          float_nest      { "lat" : ${latitude['$.from.ip']}, "lon" : ${longitude['$.from.ip']}}
+          string_concat   ${city['$.from.ip']},${country_name['$.from.ip']}
+          string_array    [${city['$.from.ip']}, ${country_name['$.from.ip']}]
+          string_nest     { "city" : ${city['$.from.ip']}, "country_name" : ${country_name['$.from.ip']}}
           unknown_city    ${city['unknown_key']}
           undefined       ${city['undefined']}
-          broken_array1   [${longitude['from.ip']}, ${latitude['undefined']}]
+          broken_array1   [${longitude['$.from.ip']}, ${latitude['undefined']}]
           broken_array2   [${longitude['undefined']}, ${latitude['undefined']}]
         </record>
       ]
@@ -958,13 +978,13 @@ class GeoipFilterTest < Test::Unit::TestCase
     def test_filter_record_directive_multiple_record
       config = %[
         backend_library geoip
-        geoip_lookup_keys from.ip, to.ip
+        geoip_lookup_keys $.from.ip, $.to.ip
         <record>
-          from_city       ${city['from.ip']}
-          to_city         ${city['to.ip']}
-          from_country    ${country_name['from.ip']}
-          to_country      ${country_name['to.ip']}
-          string_array    [${country_name['from.ip']}, ${country_name['to.ip']}]
+          from_city       ${city['$.from.ip']}
+          to_city         ${city['$.to.ip']}
+          from_country    ${country_name['$.from.ip']}
+          to_country      ${country_name['$.to.ip']}
+          string_array    [${country_name['$.from.ip']}, ${country_name['$.to.ip']}]
         </record>
       ]
       messages = [
