@@ -416,12 +416,32 @@ class GeoipFilterTest < Test::Unit::TestCase
       assert_equal(expected, filtered)
     end
 
-    def test_filter_nested_attr_bracket_style
+    def test_filter_nested_attr_bracket_style_double_quote
       config = %[
         backend_library geoip2_c
         geoip_lookup_keys  $["host"]["ip"]
         <record>
           geoip_city ${city.names.en['$["host"]["ip"]']}
+        </record>
+      ]
+      messages = [
+        {'host' => {'ip' => '66.102.3.80'}, 'message' => 'valid ip'},
+        {'message' => 'missing field'}
+      ]
+      expected = [
+        {'host' => {'ip' => '66.102.3.80'}, 'message' => 'valid ip', 'geoip_city' => 'Mountain View'},
+        {'message' => 'missing field', 'geoip_city' => nil}
+      ]
+      filtered = filter(config, messages)
+      assert_equal(expected, filtered)
+    end
+
+    def test_filter_nested_attr_bracket_style_single_quote
+      config = %[
+        backend_library geoip2_c
+        geoip_lookup_keys  $['host']['ip']
+        <record>
+          geoip_city ${city.names.en["$['host']['ip']"]}
         </record>
       ]
       messages = [
