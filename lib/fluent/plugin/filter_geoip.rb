@@ -18,8 +18,14 @@ module Fluent::Plugin
 
     BACKEND_LIBRARIES = [:geoip, :geoip2_compat, :geoip2_c]
 
-    REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\[['"](?<record_key>-?[^'"]+)['"]\]\}$/
-    REGEXP_PLACEHOLDER_BRACKET_SINGLE = /^\$\{(?<geoip_key>[^{}\[\]]+)\[["'](?<record_key>[^{}]+)["']\]\}$/
+    REGEXP_PLACEHOLDER_SINGLE = /^\$\{
+                                  (?<geoip_key>-?[^\[\]]+)
+                                    \[
+                                      (?:(?<dq>")|(?<sq>'))
+                                        (?<record_key>-?(?(<dq>)[^"{}]+|[^'{}]+))
+                                      (?(<dq>)"|')
+                                    \]
+                                  \}$/x
     REGEXP_PLACEHOLDER_SCAN = /['"]?(\$\{[^\}]+?\})['"]?/
 
     GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
@@ -74,7 +80,7 @@ module Fluent::Plugin
 
       @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{|placeholder| placeholder[0] }.uniq
       @placeholder_keys.each do |key|
-        m = key.match(REGEXP_PLACEHOLDER_SINGLE) || key.match(REGEXP_PLACEHOLDER_BRACKET_SINGLE)
+        m = key.match(REGEXP_PLACEHOLDER_SINGLE)
         geoip_key = m[:geoip_key]
         case @backend_library
         when :geoip
@@ -110,7 +116,7 @@ module Fluent::Plugin
       placeholder = create_placeholder(geolocate(get_address(record)))
       return record if @skip_adding_null_record && placeholder.values.first.nil?
       @map.each do |record_key, value|
-        if value.match(REGEXP_PLACEHOLDER_SINGLE) || value.match(REGEXP_PLACEHOLDER_BRACKET_SINGLE)
+        if value.match(REGEXP_PLACEHOLDER_SINGLE) #|| value.match(REGEXP_PLACEHOLDER_BRACKET_SINGLE)
           rewrited = placeholder[value]
         elsif json?(value)
           rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN) {|match|
@@ -171,7 +177,7 @@ module Fluent::Plugin
     def create_placeholder(geodata)
       placeholder = {}
       @placeholder_keys.each do |placeholder_key|
-        position = placeholder_key.match(REGEXP_PLACEHOLDER_SINGLE) || placeholder_key.match(REGEXP_PLACEHOLDER_BRACKET_SINGLE)
+        position = placeholder_key.match(REGEXP_PLACEHOLDER_SINGLE)
         next if position.nil? or geodata[position[:record_key]].nil?
         keys = [position[:record_key]] + position[:geoip_key].split('.').map(&:to_sym)
         value = geodata.dig(*keys)
