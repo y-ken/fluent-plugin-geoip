@@ -41,6 +41,8 @@ $ brew install geoip
 $ bundle config build.geoip-c --with-geoip-dir=/usr/local/include/
 ```
 
+See [geoip2_c](https://github.com/okkez/geoip2_c#build-requirements), if you failed to install geoip2_c.
+
 ## Installation
 
 install with `gem` or td-agent provided command as:
