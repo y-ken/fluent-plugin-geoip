@@ -34,7 +34,7 @@ $ sudo yum install geoip-devel --enablerepo=epel
 
 # for Ubuntu/Debian
 $ sudo apt-get install build-essential
-$ sudo apt-get install libgeoip-dev
+$ sudo apt-get install libgeoip-dev libmaxminddb-dev
 
 # for OS X
 $ brew install geoip
