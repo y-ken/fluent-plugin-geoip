@@ -110,6 +110,86 @@ Note that filter version of geoip plugin does not have handling tag feature.
 </filter>
 ```
 
+#### Tips: Modify records without city information
+
+```
+<filter access.apache>
+  @type geoip
+  geoip_lookup_keys remote_addr
+  <record>
+    city         ${city.names.en["remote_addr"]}     # skip adding fields if this field is null
+    latitude     ${location.latitude["remote_addr"]}
+    longitude    ${location.longitude["remote_addr"]}
+    country      ${country.iso_code["remote_addr"]}
+    country_name ${country.names.en["remote_addr"]}
+    postal_code  ${postal.code["remote_addr"]}
+  </record>
+  skip_adding_null_record true
+</filter>
+```
+
+Skip adding fields if incoming `remote_addr`'s GeoIP data is like following:
+
+```ruby
+# the record does not have "city" field
+{"continent"=>
+  {"code"=>"NA",
+   "geoname_id"=>6255149,
+   "names"=>
+    {"de"=>"Nordamerika",
+     "en"=>"North America",
+     "es"=>"Norteamérica",
+     "fr"=>"Amérique du Nord",
+     "ja"=>"北アメリカ",
+     "pt-BR"=>"América do Norte",
+     "ru"=>"Северная Америка",
+     "zh-CN"=>"北美洲"}},
+ "country"=>
+  {"geoname_id"=>6252001,
+   "iso_code"=>"US",
+   "names"=>
+    {"de"=>"USA",
+     "en"=>"United States",
+     "es"=>"Estados Unidos",
+     "fr"=>"États-Unis",
+     "ja"=>"アメリカ合衆国",
+     "pt-BR"=>"Estados Unidos",
+     "ru"=>"США",
+     "zh-CN"=>"美国"}},
+ "location"=>
+  {"accuracy_radius"=>1000, "latitude"=>37.751, "longitude"=>-97.822},
+ "registered_country"=>
+  {"geoname_id"=>6252001,
+   "iso_code"=>"US",
+   "names"=>
+    {"de"=>"USA",
+     "en"=>"United States",
+     "es"=>"Estados Unidos",
+     "fr"=>"États-Unis",
+     "ja"=>"アメリカ合衆国",
+     "pt-BR"=>"Estados Unidos",
+     "ru"=>"США",
+     "zh-CN"=>"美国"}}}
+```
+
+We can avoid this behavior changing field order in `<record>` like following:
+
+```
+<filter access.apache>
+  @type geoip
+  geoip_lookup_keys remote_addr
+  <record>
+    latitude     ${location.latitude["remote_addr"]} # this field must not be null
+    longitude    ${location.longitude["remote_addr"]}
+    country      ${country.iso_code["remote_addr"]}
+    country_name ${country.names.en["remote_addr"]}
+    postal_code  ${postal.code["remote_addr"]}
+    city         ${city.names.en["remote_addr"]}     # adding fields even if this field is null
+  </record>
+  skip_adding_null_record true
+</filter>
+```
+
 #### Advanced config samples
 
 It is a sample to get friendly geo point recdords for elasticsearch with Yajl (JSON) parser.<br />
