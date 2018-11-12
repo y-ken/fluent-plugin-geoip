@@ -85,6 +85,36 @@ class GeoipFilterTest < Test::Unit::TestCase
       }
     end
 
+    test "dotted key is not treated as nested attributes" do
+      mock($log).warn("host.ip is not treated as nested attributes")
+      create_driver %[
+        geoip_lookup_keys host.ip
+        <record>
+          city ${city.names.en['host.ip']}
+        </record>
+      ]
+    end
+
+    test "nested attributes bracket style" do
+      mock($log).warn(anything).times(0)
+      create_driver %[
+        geoip_lookup_keys  $["host"]["ip"]
+        <record>
+          geoip_city ${city.names.en['$["host"]["ip"]']}
+        </record>
+      ]
+    end
+
+    test "nested attributes dot style" do
+      mock($log).warn(anything).times(0)
+      create_driver %[
+        geoip_lookup_keys  $.host.ip
+        <record>
+          geoip_city ${city['$.host.ip']}
+        </record>
+      ]
+    end
+
     data(geoip: "geoip",
          geoip2_compat: "geoip2_compat")
     test "unsupported key" do |backend|

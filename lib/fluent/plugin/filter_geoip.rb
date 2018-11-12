@@ -52,6 +52,11 @@ module Fluent::Plugin
         @geoip_lookup_keys = @geoip_lookup_key.split(/\s*,\s*/)
       end
 
+      @geoip_lookup_keys.each do |key|
+        if key.include?(".") && !key.start_with?("$")
+          $log.warn("#{key} is not treated as nested attributes")
+        end
+      end
       @geoip_lookup_accessors = @geoip_lookup_keys.map {|key| [key, record_accessor_create(key)] }.to_h
 
       if conf.keys.any? {|k| k =~ /^enable_key_/ }
