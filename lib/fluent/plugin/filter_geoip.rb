@@ -18,13 +18,20 @@ module Fluent::Plugin
 
     BACKEND_LIBRARIES = [:geoip, :geoip2_compat, :geoip2_c]
 
-    REGEXP_PLACEHOLDER_SINGLE = /^\$\{(?<geoip_key>-?[^\[]+)\[['"](?<record_key>-?[^'"]+)['"]\]\}$/
+    REGEXP_PLACEHOLDER_SINGLE = /^\$\{
+                                  (?<geoip_key>-?[^\[\]]+)
+                                    \[
+                                      (?:(?<dq>")|(?<sq>'))
+                                        (?<record_key>-?(?(<dq>)[^"{}]+|[^'{}]+))
+                                      (?(<dq>)"|')
+                                    \]
+                                  \}$/x
     REGEXP_PLACEHOLDER_SCAN = /['"]?(\$\{[^\}]+?\})['"]?/
 
     GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
     GEOIP2_COMPAT_KEYS = %w(city country_code country_name latitude longitude postal_code region region_name)
 
-    helpers :compat_parameters, :inject
+    helpers :compat_parameters, :inject, :record_accessor
 
     config_param :geoip_database, :string, default: File.expand_path('../../../data/GeoLiteCity.dat', __dir__)
     config_param :geoip2_database, :string, default: File.expand_path('../../../data/GeoLite2-City.mmdb', __dir__)
@@ -44,6 +51,13 @@ module Fluent::Plugin
       if @geoip_lookup_key
         @geoip_lookup_keys = @geoip_lookup_key.split(/\s*,\s*/)
       end
+
+      @geoip_lookup_keys.each do |key|
+        if key.include?(".") && !key.start_with?("$")
+          $log.warn("#{key} is not treated as nested attributes")
+        end
+      end
+      @geoip_lookup_accessors = @geoip_lookup_keys.map {|key| [key, record_accessor_create(key)] }.to_h
 
       if conf.keys.any? {|k| k =~ /^enable_key_/ }
         raise Fluent::ConfigError, "geoip: 'enable_key_*' config format is obsoleted. use <record></record> directive instead."
@@ -71,7 +85,8 @@ module Fluent::Plugin
 
       @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{|placeholder| placeholder[0] }.uniq
       @placeholder_keys.each do |key|
-        geoip_key = key.match(REGEXP_PLACEHOLDER_SINGLE)[:geoip_key]
+        m = key.match(REGEXP_PLACEHOLDER_SINGLE)
+        geoip_key = m[:geoip_key]
         case @backend_library
         when :geoip
           raise Fluent::ConfigError, "#{@backend_library}: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
@@ -106,7 +121,7 @@ module Fluent::Plugin
       placeholder = create_placeholder(geolocate(get_address(record)))
       return record if @skip_adding_null_record && placeholder.values.first.nil?
       @map.each do |record_key, value|
-        if value.match(REGEXP_PLACEHOLDER_SINGLE)
+        if value.match(REGEXP_PLACEHOLDER_SINGLE) #|| value.match(REGEXP_PLACEHOLDER_BRACKET_SINGLE)
           rewrited = placeholder[value]
         elsif json?(value)
           rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN) {|match|
@@ -142,8 +157,8 @@ module Fluent::Plugin
 
     def get_address(record)
       address = {}
-      @geoip_lookup_keys.each do |field|
-        address[field] = record[field] || record.dig(*field.split('.'))
+      @geoip_lookup_accessors.each do |field, accessor|
+        address[field] = accessor.call(record)
       end
       address
     end
