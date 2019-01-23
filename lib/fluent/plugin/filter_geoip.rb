@@ -86,16 +86,18 @@ module Fluent::Plugin
       @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{|placeholder| placeholder[0] }.uniq
       @placeholder_keys.each do |key|
         m = key.match(REGEXP_PLACEHOLDER_SINGLE)
-        geoip_key = m[:geoip_key]
-        case @backend_library
-        when :geoip
-          raise Fluent::ConfigError, "#{@backend_library}: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
-        when :geoip2_compat
-          raise Fluent::ConfigError, "#{@backend_library}: unsupported key #{geoip_key}" unless GEOIP2_COMPAT_KEYS.include?(geoip_key)
-        when :geoip2_c
+        if m
+          geoip_key = m[:geoip_key]
+          case @backend_library
+          when :geoip
+            raise Fluent::ConfigError, "#{@backend_library}: unsupported key #{geoip_key}" unless GEOIP_KEYS.include?(geoip_key)
+          when :geoip2_compat
+            raise Fluent::ConfigError, "#{@backend_library}: unsupported key #{geoip_key}" unless GEOIP2_COMPAT_KEYS.include?(geoip_key)
+          when :geoip2_c
           # Nothing to do.
           # We cannot define supported key(s) before we fetch values from GeoIP2 database
           # because geoip2_c can fetch any fields in GeoIP2 database.
+          end
         end
       end
 
