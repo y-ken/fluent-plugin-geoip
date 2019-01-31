@@ -116,7 +116,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
 
     test "invalid placeholder attributes" do
-      assert_raise(Fluent::ConfigParseError) do
+      assert_raise(Fluent::ConfigError) do
         create_driver %[
           geoip_lookup_keys host
           backend_library geoip2_c
