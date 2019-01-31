@@ -86,6 +86,7 @@ module Fluent::Plugin
       @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{|placeholder| placeholder[0] }.uniq
       @placeholder_keys.each do |key|
         m = key.match(REGEXP_PLACEHOLDER_SINGLE)
+        raise Fluent::ConfigError, "Invalid placeholder attributes: #{key}" unless m
         geoip_key = m[:geoip_key]
         case @backend_library
         when :geoip
