@@ -191,7 +191,7 @@ We can avoid this behavior changing field order in `<record>` like following:
 
 #### Tips: nested attributes for geoip_lookup_keys
 
-See [Record Accessor Plugin](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-record_accessor#syntax)
+See [Record Accessor Plugin Helper](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-record_accessor#syntax)
 
 **NOTE** Since v1.3.0 does not interpret `host.ip` as nested attribute.
 
