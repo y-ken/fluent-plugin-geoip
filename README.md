@@ -191,7 +191,7 @@ We can avoid this behavior changing field order in `<record>` like following:
 
 #### Tips: nested attributes for geoip_lookup_keys
 
-See [Record Accessor Plugin Helper](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-record_accessor#syntax)
+See [Record Accessor Plugin Helper](https://docs.fluentd.org/plugin-helper-overview/api-plugin-helper-record_accessor)
 
 **NOTE** Since v1.3.0 does not interpret `host.ip` as nested attribute.
 
@@ -355,18 +355,18 @@ Note that filter version of `geoip` plugin does not have handling `tag` feature.
 
 #### Plugin helpers
 
-* [compat_parameters](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-compat_parameters)
-* [inject](https://docs.fluentd.org/v1.0/articles/api-plugin-helper-inject)
+* [compat_parameters](https://docs.fluentd.org/plugin-helper-overview/api-plugin-helper-compat_parameters)
+* [inject](https://docs.fluentd.org/plugin-helper-overview/api-plugin-helper-inject)
 
-See also [Filter Plugin Overview](https://docs.fluentd.org/v1.0/articles/filter-plugin-overview)
+See also [Filter Plugin Overview](https://docs.fluentd.org/filter)
 
 #### Supported sections
 
-* [Inject section configurations](https://docs.fluentd.org/v1.0/articles/inject-section)
+* [Inject section configurations](https://docs.fluentd.org/configuration/inject-section)
 
 #### Parameters
 
-[Plugin Common Paramteters](https://docs.fluentd.org/v1.0/articles/plugin-common-parameters)
+[Plugin Common Paramteters](https://docs.fluentd.org/configuration/plugin-common-parameters)
 
 **geoip_database** (string) (optional)
 
