@@ -31,10 +31,12 @@ before use, install dependent library as:
 # for RHEL/CentOS
 $ sudo yum groupinstall "Development Tools"
 $ sudo yum install geoip-devel --enablerepo=epel
+$ sudo yum install libmaxminddb-devel
 
 # for Ubuntu/Debian
 $ sudo apt-get install build-essential
 $ sudo apt-get install libgeoip-dev
+$ sudo apt-get install libmaxminddb-dev
 
 # for OS X
 $ brew install geoip
