@@ -1,0 +1,17 @@
+version: '{build}'
+install:
+  - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - ridk.cmd enable
+  - pacman -Sy --noconfirm mingw-w64-x86_64-geoip mingw-w64-x86_64-libmaxminddb
+  - ruby --version
+  - gem --version
+  - bundle install
+build: off
+test_script:
+  - bundle exec rake test
+
+# https://www.appveyor.com/docs/installed-software/#ruby
+environment:
+  matrix:
+    - ruby_version: "25-x64"
+    - ruby_version: "24-x64"
