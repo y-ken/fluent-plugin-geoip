@@ -209,6 +209,26 @@ class GeoipFilterTest < Test::Unit::TestCase
       assert_equal(expected, filtered)
     end
 
+    def test_filter_with_empty_string
+      config = %[
+        backend_library   geoip2_c
+        geoip_lookup_keys host
+        <record>
+          geoip_city      '${city.names.en["host"]}'
+          geopoint        '[${location.longitude["host"]}, ${location.latitude["host"]}]'
+        </record>
+        skip_adding_null_record false
+      ]
+      messages = [
+        {'host' => '', 'message' => 'empty string ip'},
+      ]
+      expected = [
+        {'host' => '', 'message' => 'empty string ip', 'geoip_city' => nil, 'geopoint' => [nil, nil]},
+      ]
+      filtered = filter(config, messages)
+      assert_equal(expected, filtered)
+    end
+
     def test_filter_with_skip_unknown_address
       config = %[
         backend_library   geoip2_c
