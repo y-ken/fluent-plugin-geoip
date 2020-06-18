@@ -169,11 +169,15 @@ module Fluent::Plugin
       addresses.each do |field, ip|
         geo = nil
         if ip
-          geo = if @geoip.respond_to?(:look_up)
-                  @geoip.look_up(ip)
-                else
-                  @geoip.lookup(ip)
-                end
+          if ip.empty?
+            log.warn "#{field} is empty string"
+          else
+            geo = if @geoip.respond_to?(:look_up)
+                    @geoip.look_up(ip)
+                  else
+                    @geoip.lookup(ip)
+                  end
+          end
         end
         geodata[field] = geo
       end
