@@ -279,9 +279,9 @@ $ tail /var/log/td-agent/td-agent.log
 You can check geoip data format using [utils/dump.rb](https://github.com/okkez/fluent-plugin-geoip/utils/dump.rb).
 
 ```
-$ bundle exec ruby urils/dump.rb geoip2 66.102.3.80
-$ bundle exec ruby urils/dump.rb geoip2_compat 66.102.3.80
-$ bundle exec ruby urils/dump.rb geoip 66.102.3.80
+$ bundle exec ruby utils/dump.rb geoip2 66.102.3.80
+$ bundle exec ruby utils/dump.rb geoip2_compat 66.102.3.80
+$ bundle exec ruby utils/dump.rb geoip 66.102.3.80
 ```
 
 ## Placeholders
