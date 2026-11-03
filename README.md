@@ -1,4 +1,4 @@
-# fluent-plugin-geoip [![Build Status](https://travis-ci.org/y-ken/fluent-plugin-geoip.png?branch=master)](https://travis-ci.org/y-ken/fluent-plugin-geoip)
+# fluent-plugin-geoip [![CI](https://github.com/y-ken/fluent-plugin-geoip/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/y-ken/fluent-plugin-geoip/actions/workflows/ci.yml)
 
 Fluentd Filter plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
 
@@ -37,6 +37,7 @@ $ sudo yum install libmaxminddb-devel
 $ sudo apt-get install build-essential
 $ sudo apt-get install libgeoip-dev
 $ sudo apt-get install libmaxminddb-dev
+$ sudo apt-get install pkg-config
 
 # for OS X
 $ brew install geoip

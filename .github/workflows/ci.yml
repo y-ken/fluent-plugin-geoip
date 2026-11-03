@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Unit tests (Ruby ${{ matrix.ruby }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Fluentd 1.20.1 and later need Ruby 3.3 or later.
+        ruby: ['3.3', '3.4', '4.0']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install the dependencies in the README
+        run: sudo apt-get update && sudo apt-get install -y build-essential libgeoip-dev libmaxminddb-dev pkg-config
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Check the Fluentd version
+        run: bundle exec ruby ci/check_fluentd_version.rb
+      - run: bundle exec rake test
+
+  # Container path: the official fluent/fluentd Docker image (gem-based).
+  install-smoke-docker:
+    name: Install smoke (Docker fluent/fluentd ${{ matrix.fluentd_tag }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # "edge" tracks the latest Fluentd release to catch drift early.
+        fluentd_tag: ['edge-debian']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+        with:
+          ruby-version: '3.4'
+      - name: Build gem
+        run: |
+          mkdir -p pkg
+          gem build fluent-plugin-geoip.gemspec -o pkg/fluent-plugin-geoip.gem
+      - name: Install on official fluentd image (reproduces README steps)
+        run: |
+          docker run --rm --user root --entrypoint sh \
+            -v "${{ github.workspace }}:/workspace:ro" \
+            "fluent/fluentd:${{ matrix.fluentd_tag }}" \
+            /workspace/ci/install_smoke.sh
