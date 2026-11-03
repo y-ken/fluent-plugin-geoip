@@ -199,7 +199,7 @@ See [Record Accessor Plugin Helper](https://docs.fluentd.org/plugin-helper-overv
 
 #### Advanced config samples
 
-It is a sample to get friendly geo point recdords for elasticsearch with Yajl (JSON) parser.<br />
+It is a sample to get friendly geo point recdords for elasticsearch with JSON parser.<br />
 
 ```
 <filter access.apache>

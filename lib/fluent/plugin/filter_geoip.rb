@@ -1,7 +1,7 @@
 require 'fluent/plugin/filter'
 
 require 'geoip'
-require 'yajl'
+require 'json'
 unless {}.respond_to?(:dig)
   begin
     # backport_dig is faster than dig_rb so prefer backport_dig.
@@ -71,9 +71,9 @@ module Fluent::Plugin
           @map[k] = v
           validate_json = Proc.new {
             begin
-              dummy_text = Yajl::Encoder.encode('dummy_text')
-              Yajl::Parser.parse(v.gsub(REGEXP_PLACEHOLDER_SCAN, dummy_text))
-            rescue Yajl::ParseError => e
+              dummy_text = 'dummy_text'.to_json
+              JSON.parse(v.gsub(REGEXP_PLACEHOLDER_SCAN, dummy_text), allow_duplicate_key: true, allow_comments: true)
+            rescue JSON::ParserError => e
               message = "geoip: failed to parse '#{v}' as json."
               log.error message, error: e
               raise Fluent::ConfigError, message
@@ -127,7 +127,7 @@ module Fluent::Plugin
         elsif json?(value)
           rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN) {|match|
             match = match[1..match.size-2] if quoted_value?(match)
-            Yajl::Encoder.encode(placeholder[match])
+            placeholder[match].to_json
           }
           rewrited = parse_json(rewrited)
         else
@@ -149,8 +149,8 @@ module Fluent::Plugin
 
     def parse_json(message)
       begin
-        return Yajl::Parser.parse(message)
-      rescue Yajl::ParseError => e
+        return JSON.parse(message, allow_duplicate_key: true, allow_comments: true)
+      rescue JSON::ParserError => e
         log.info "geoip: failed to parse '#{message}' as json.", error_class: e.class, error: e.message
         return nil
       end
