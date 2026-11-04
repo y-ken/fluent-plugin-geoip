@@ -165,6 +165,52 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
   end
 
+  sub_test_case "loading" do
+    # geoip-c needs libGeoIP, which geoip2_c and geoip2_compat do not use (#94).
+    def run_ruby(script)
+      require "open3"
+      lib = File.expand_path("../../lib", __dir__)
+      out, err, status = Open3.capture3(RbConfig.ruby, "-I", lib, "-e", script)
+      assert_true(status.success?, err)
+      out
+    end
+
+    test "loading the plugin does not load geoip-c" do
+      assert_equal("not loaded\n", run_ruby(<<~'RUBY'))
+        require "fluent/plugin/filter_geoip"
+        puts defined?(::GeoIP) ? "loaded" : "not loaded"
+      RUBY
+    end
+
+    data(geoip2_c: "geoip2_c",
+         geoip2_compat: "geoip2_compat")
+    test "configuring a GeoIP2 backend does not load geoip-c" do |backend|
+      assert_equal("not loaded\n", run_ruby(<<~RUBY))
+        require "test/unit"
+        Test::Unit::AutoRunner.need_auto_run = false
+        require "fluent/test"
+        require "fluent/test/driver/filter"
+        require "fluent/plugin/filter_geoip"
+        Fluent::Test.setup
+        Fluent::Test::Driver::Filter.new(Fluent::Plugin::GeoipFilter).configure("backend_library #{backend}")
+        puts defined?(::GeoIP) ? "loaded" : "not loaded"
+      RUBY
+    end
+
+    test "the error shows why the gem cannot be loaded" do
+      any_instance_of(Fluent::Plugin::GeoipFilter) do |klass|
+        stub(klass).require(anything) do |name|
+          raise LoadError, "libGeoIP.so.1: cannot open shared object file" if name == "geoip"
+          Kernel.require(name)
+        end
+      end
+      error = assert_raise(Fluent::ConfigError) do
+        create_driver("backend_library geoip\n<record>\ncity ${city[\"host\"]}\n</record>\n")
+      end
+      assert_equal("Cannot load geoip-c gem. (LoadError: libGeoIP.so.1: cannot open shared object file)", error.message)
+    end
+  end
+
   sub_test_case "geoip2_c" do
     def test_filter_with_dot_key
       config = %[

@@ -1,8 +1,10 @@
 # Loads the plugin and looks up an address with the bundled GeoLite2 database,
 # to confirm that the plugin and the geoip-c and geoip2_c native extensions are
-# usable at runtime after a fresh install.
+# usable at runtime after a fresh install. The plugin loads geoip-c only for
+# the geoip backend, so it is required here explicitly.
 require "fluent/plugin/filter_geoip"
 require "geoip2"
+require "geoip"
 
 database = File.join(Gem.loaded_specs["fluent-plugin-geoip"].full_gem_path, "data", "GeoLite2-City.mmdb")
 city = GeoIP2::Database.new(database).lookup("66.102.3.80")&.to_h&.dig("city", "names", "en")

@@ -1,6 +1,5 @@
 require 'fluent/plugin/filter'
 
-require 'geoip'
 require 'json'
 unless {}.respond_to?(:dig)
   begin
@@ -204,6 +203,8 @@ module Fluent::Plugin
     def load_database
       case @backend_library
       when :geoip
+        # geoip-c needs libGeoIP, so it is loaded only for this backend.
+        require 'geoip'
         ::GeoIP::City.new(@geoip_database, :memory, false)
       when :geoip2_compat
         require 'geoip2_compat'
@@ -212,8 +213,11 @@ module Fluent::Plugin
         require 'geoip2'
         GeoIP2::Database.new(@geoip2_database)
       end
-    rescue LoadError
-      raise Fluent::ConfigError, "You must install #{@backend_library} gem."
+    rescue LoadError => e
+      # Keep the message, because it shows a missing shared library such as
+      # libGeoIP.so.1 even when the gem is installed.
+      gem_name = @backend_library == :geoip ? "geoip-c" : @backend_library
+      raise Fluent::ConfigError, "Cannot load #{gem_name} gem. (#{e.class}: #{e.message})"
     end
   end
 end
