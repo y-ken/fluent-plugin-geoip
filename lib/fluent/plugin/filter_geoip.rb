@@ -1,5 +1,6 @@
 require 'fluent/plugin/filter'
 
+require 'ipaddr'
 require 'json'
 unless {}.respond_to?(:dig)
   begin
@@ -168,19 +169,61 @@ module Fluent::Plugin
       addresses.each do |field, ip|
         geo = nil
         if ip
-          if ip.empty?
+          if ip.respond_to?(:empty?) && ip.empty?
             log.warn "#{field} is empty string"
+          elsif !ip.is_a?(String)
+            # Not an IP address, so it is not found. Do not log the value.
+            log.debug "geoip: #{field} is not a string", value_class: ip.class
           else
-            geo = if @geoip.respond_to?(:look_up)
-                    @geoip.look_up(ip)
-                  else
-                    @geoip.lookup(ip)
-                  end
+            geo = lookup(field, ip)
           end
         end
         geodata[field] = geo
       end
       geodata
+    end
+
+    def lookup(field, ip)
+      if @geoip.respond_to?(:look_up)
+        @geoip.look_up(ip)
+      else
+        @geoip.lookup(ip)
+      end
+    rescue => e
+      raise unless not_ip_address_error?(e, ip)
+      # The value is not an IP address, such as "-" or "1.2.3.4, 5.6.7.8",
+      # so it is not found, as with the geoip backend. Do not log the value.
+      log.debug "geoip: failed to look up #{field}", error_class: e.class, error: e.message
+      nil
+    end
+
+    # Whether the lookup failed because the value is not an IP address.
+    def not_ip_address_error?(error, ip)
+      case @backend_library
+      when :geoip2_c
+        # geoip2_c raises ArgumentError for a value with a null byte.
+        error.message.start_with?("getaddrinfo failed") ||
+          (error.is_a?(ArgumentError) && ip.b.include?("\0"))
+      when :geoip2_compat
+        # geoip2_compat 0.0.3 reads mmdb_error, which libmaxminddb does not set
+        # when getaddrinfo fails, so the message for "-" can be "lookup failed:
+        # Unknown error code". The message is right for an IP address.
+        error.message.include?("getaddrinfo failed") || !plain_ip_address?(ip)
+      else
+        false
+      end
+    end
+
+    # An IPv4 or IPv6 address that getaddrinfo also reads as one, so without a
+    # zone ID, a prefix length or brackets. The bytes are checked, so a value
+    # with an invalid encoding does not raise.
+    def plain_ip_address?(ip)
+      ip = ip.b
+      return false if ip.match?(%r{[%/\[\]]})
+      IPAddr.new(ip)
+      true
+    rescue IPAddr::Error
+      false
     end
 
     def create_placeholder(geodata)

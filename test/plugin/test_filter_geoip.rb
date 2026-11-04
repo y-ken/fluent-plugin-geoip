@@ -211,6 +211,154 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
   end
 
+  sub_test_case "a value that is not an IP address" do
+    # These values raised an error in the lookup (#95). Now they give the
+    # same record as an IP address that is not in the database.
+    NOT_IP_VALUES = {
+      "dash" => "-",
+      "word" => "unknown",
+      "X-Forwarded-For" => "66.102.3.80, 203.0.113.1",
+      "spaces" => " 66.102.3.80 ",
+      "port" => "66.102.3.80:8080",
+      "brackets" => "[2001:4860:4860::8888]",
+      "CIDR" => "66.102.3.0/24",
+      # Ruby's getaddrinfo reads these as an IP address, but libmaxminddb does not.
+      "<any>" => "<any>",
+      "<broadcast>" => "<broadcast>",
+      "invalid UTF-8" => "-\xFF".dup.force_encoding("UTF-8"),
+      "unknown zone" => "fe80::1%zz",
+      "octet over 255" => "::ffff:999.1.1.1",
+      "integer" => 6610238,
+      "float" => 1.5,
+      "true" => true,
+      "array" => ["66.102.3.80"],
+      "hash" => {"ip" => "66.102.3.80"},
+    }
+    BACKEND_CONFIGS = {
+      "geoip2_c" => %[
+        backend_library geoip2_c
+        <record>
+          city ${city.names.en["host"]}
+          lat  ${location.latitude["host"]}
+          geo  '[${location.longitude["host"]}, ${location.latitude["host"]}]'
+        </record>
+      ],
+      "geoip2_compat" => %[
+        backend_library geoip2_compat
+        <record>
+          city ${city["host"]}
+          lat  ${latitude["host"]}
+          geo  '[${longitude["host"]}, ${latitude["host"]}]'
+        </record>
+      ],
+      "geoip" => %[
+        backend_library geoip
+        <record>
+          city ${city["host"]}
+          lat  ${latitude["host"]}
+          geo  '[${longitude["host"]}, ${latitude["host"]}]'
+        </record>
+      ],
+    }
+
+    # The fields for a value that is not found, with every backend config.
+    NOT_FOUND = {"city" => nil, "lat" => nil, "geo" => [nil, nil]}
+
+    def run_filter(config, values)
+      d = create_driver(config + "\n@log_level debug\n")
+      yield d if block_given?
+      d.run(default_tag: "input.access") do
+        values.each {|value| d.feed(@time, {"host" => value, "message" => "m"}) }
+      end
+      d
+    end
+
+    def run_with_lookup_error(backend, error, value)
+      run_filter(BACKEND_CONFIGS[backend], [value]) do |d|
+        stub(d.instance.instance_variable_get(:@geoip)).lookup(anything) { raise error }
+      end
+    end
+
+    def not_found_record(value)
+      {"host" => value, "message" => "m"}.merge(NOT_FOUND)
+    end
+
+    data(BACKEND_CONFIGS.keys.map {|backend| [backend, backend] }.to_h)
+    test "an IP address that is not in the database gives NOT_FOUND" do |backend|
+      # 203.0.113.1 is a test address described in RFC5737
+      d = run_filter(BACKEND_CONFIGS[backend], ["203.0.113.1"])
+      assert_equal([not_found_record("203.0.113.1")], d.filtered_records)
+    end
+
+    data(BACKEND_CONFIGS.keys.product(NOT_IP_VALUES.keys).map {|backend, name|
+           ["#{backend}: #{name}", [backend, NOT_IP_VALUES[name]]]
+         }.to_h)
+    test "is not found" do |(backend, value)|
+      d = run_filter(BACKEND_CONFIGS[backend], [value])
+      assert_equal([not_found_record(value)], d.filtered_records)
+      assert_equal([], d.error_events)
+      assert_equal([], d.logs.grep(/66\.102\.3\.80/))
+    end
+
+    data(BACKEND_CONFIGS.keys.map {|backend| [backend, backend] }.to_h)
+    test "is skipped with skip_adding_null_record" do |backend|
+      config = BACKEND_CONFIGS[backend] + "\nskip_adding_null_record true\n"
+      d = run_filter(config, NOT_IP_VALUES.values)
+      assert_equal(NOT_IP_VALUES.values.map {|value| {"host" => value, "message" => "m"} },
+                   d.filtered_records)
+      assert_equal([], d.error_events)
+    end
+
+    # geoip2_c raises ArgumentError for a string with a null byte. geoip2_compat
+    # and geoip read it up to the null byte, and that does not change.
+    test "a string with a null byte is not found with geoip2_c" do
+      d = run_filter(BACKEND_CONFIGS["geoip2_c"], ["66.102.3.80\0"])
+      assert_equal([not_found_record("66.102.3.80\0")], d.filtered_records)
+      assert_equal([], d.error_events)
+    end
+
+    # geoip2_compat 0.0.3 reads mmdb_error, which libmaxminddb does not set
+    # when getaddrinfo fails, so the message for "-" can be "lookup failed".
+    # The check for a null byte of geoip2_c must not raise for UTF-16LE.
+    compat_error = ["geoip2_compat", "GeoIP2Compat::Error", "geoip2_compat - lookup failed: Unknown error code"]
+    data("geoip2_compat: dash" => compat_error + ["-"],
+         "geoip2_compat: invalid UTF-8" => compat_error + ["-\xFF".dup.force_encoding("UTF-8")],
+         "geoip2_compat: UTF-16LE" => compat_error + ["66.102.3.80".encode("UTF-16LE")],
+         "geoip2_compat: octet over 255" => compat_error + ["::ffff:999.1.1.1"],
+         "geoip2_compat: too many groups" => compat_error + ["1:2:3:4:5:6:7:8:9::"],
+         "geoip2_compat: unknown zone" => compat_error + ["fe80::1%zz"],
+         "geoip2_compat: brackets" => compat_error + ["[::1]"],
+         "geoip2_compat: CIDR" => compat_error + ["66.102.3.0/24"],
+         "geoip2_c: UTF-16LE" => ["geoip2_c", "ArgumentError", "string contains null byte", "66.102.3.80".encode("UTF-16LE")])
+    test "an error for a value that is not an IP address is not found" do |(backend, error_class, message, value)|
+      d = run_with_lookup_error(backend, Object.const_get(error_class).new(message), value)
+      assert_equal([not_found_record(value)], d.filtered_records)
+      assert_equal([], d.error_events)
+    end
+
+    test "an empty Array is logged as before" do
+      d = run_filter(BACKEND_CONFIGS["geoip2_c"], [[]])
+      assert_equal(1, d.logs.grep(/\[warn\]: host is empty string/).size)
+      assert_equal([], d.error_events)
+    end
+
+    # This error comes from the database, not from the value.
+    data(geoip2_c: ["geoip2_c", "GeoIP2::Error", "lookup failed: The MaxMind DB file's search tree is corrupt"],
+         geoip2_compat: ["geoip2_compat", "GeoIP2Compat::Error", "geoip2_compat - lookup failed: The MaxMind DB file's search tree is corrupt"])
+    test "an error of the database is not treated as not found" do |(backend, error_class, message)|
+      error = Object.const_get(error_class).new(message)
+      d = run_with_lookup_error(backend, error, "66.102.3.80")
+      assert_equal([], d.filtered_records)
+      assert_equal([error], d.error_events.map {|_tag, _time, _record, e| e })
+    end
+
+    test "does not change the lookup of an IPv4 and an IPv6 address" do
+      d = run_filter(BACKEND_CONFIGS["geoip2_c"], ["66.102.3.80", "2001:4860:4860::8888"])
+      assert_equal(["Mountain View", nil], d.filtered_records.map {|r| r["city"] })
+      assert_equal([37.419200000000004, 37.751], d.filtered_records.map {|r| r["lat"] })
+    end
+  end
+
   sub_test_case "geoip2_c" do
     def test_filter_with_dot_key
       config = %[
