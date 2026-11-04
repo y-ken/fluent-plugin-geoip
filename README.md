@@ -31,12 +31,10 @@ before use, install dependent library as:
 # for RHEL/CentOS
 $ sudo yum groupinstall "Development Tools"
 $ sudo yum install geoip-devel --enablerepo=epel
-$ sudo yum install libmaxminddb-devel
 
 # for Ubuntu/Debian
 $ sudo apt-get install build-essential
 $ sudo apt-get install libgeoip-dev
-$ sudo apt-get install libmaxminddb-dev
 $ sudo apt-get install pkg-config
 
 # for OS X
@@ -44,7 +42,14 @@ $ brew install geoip
 $ bundle config build.geoip-c --with-geoip-dir=/usr/local/include/
 ```
 
-See [geoip2_c](https://github.com/okkez/geoip2_c#build-requirements), if you failed to install geoip2_c.
+[geoip2_c](https://github.com/fluent-plugins-nursery/geoip2_c) does not use libmaxminddb installed on the system. When it is installed, it downloads the source of [libmaxminddb](https://github.com/maxmind/libmaxminddb) from GitHub and builds it. So installing this plugin needs:
+
+* access to `github.com`. Without it, the installation fails with `Failed to open TCP connection to github.com:443`.
+* a C compiler and `pkg-config`. "Development Tools" of RHEL/CentOS includes both. Without `pkg-config`, it fails with `pkg-config not found`.
+
+`libmaxminddb-dev` (`libmaxminddb-devel`) is not needed. geoip2_compat also builds the libmaxminddb that it bundles.
+
+See [geoip2_c](https://github.com/fluent-plugins-nursery/geoip2_c), if you failed to install geoip2_c.
 
 ## Installation
 
