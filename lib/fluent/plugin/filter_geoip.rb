@@ -26,7 +26,9 @@ module Fluent::Plugin
                                       (?(<dq>)"|')
                                     \]
                                   \}$/x
-    REGEXP_PLACEHOLDER_SCAN = /['"]?(\$\{[^\}]+?\})['"]?/
+    # A placeholder. REGEXP_PLACEHOLDER_SCAN also matches a quote around it.
+    REGEXP_PLACEHOLDER = /\$\{[^\}]+?\}/
+    REGEXP_PLACEHOLDER_SCAN = /['"]?(#{REGEXP_PLACEHOLDER})['"]?/
 
     GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
     GEOIP2_COMPAT_KEYS = %w(city country_code country_name latitude longitude postal_code region region_name)
@@ -131,7 +133,8 @@ module Fluent::Plugin
           }
           rewrited = parse_json(rewrited)
         else
-          rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN, placeholder)
+          # Keep the quotes around a placeholder in a string.
+          rewrited = value.gsub(REGEXP_PLACEHOLDER, placeholder)
         end
         record[record_key] = rewrited
       end

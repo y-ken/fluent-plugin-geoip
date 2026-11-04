@@ -361,6 +361,34 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
   end
 
+  sub_test_case "a placeholder next to a quote in a string" do
+    def filter_one(record_section, host = "66.102.3.80")
+      config = "backend_library geoip2_c\n<record>\n#{record_section}\n</record>\n"
+      filter(config, [{"host" => host}]).first
+    end
+
+    test "keeps the quotes and replaces the placeholder" do
+      record = filter_one(<<~'CONF')
+        double  'City is "${city.names.en["host"]}"'
+        single  "City is '${city.names.en['host']}'"
+        before  'from "${country.iso_code["host"]}'
+        after   "${city.names.en['host']}'s office"
+        plain   City is ${city.names.en["host"]}
+      CONF
+      assert_equal('City is "Mountain View"', record["double"])
+      assert_equal("City is 'Mountain View'", record["single"])
+      assert_equal('from "US', record["before"])
+      assert_equal("Mountain View's office", record["after"])
+      assert_equal("City is Mountain View", record["plain"])
+    end
+
+    test "gives an empty string inside the quotes when the IP is not found" do
+      # 203.0.113.1 is a test address described in RFC5737
+      record = filter_one(%q(double  'City is "${city.names.en["host"]}"'), "203.0.113.1")
+      assert_equal('City is ""', record["double"])
+    end
+  end
+
   sub_test_case "geoip2_c" do
     def test_filter_with_dot_key
       config = %[
