@@ -331,6 +331,7 @@ class GeoipFilterTest < Test::Unit::TestCase
          "geoip2_compat: CIDR" => compat_error + ["66.102.3.0/24"],
          "geoip2_c: UTF-16LE" => ["geoip2_c", "ArgumentError", "string contains null byte", "66.102.3.80".encode("UTF-16LE")])
     test "an error for a value that is not an IP address is not found" do |(backend, error_class, message, value)|
+      require(backend == "geoip2_c" ? "geoip2" : backend)
       d = run_with_lookup_error(backend, Object.const_get(error_class).new(message), value)
       assert_equal([not_found_record(value)], d.filtered_records)
       assert_equal([], d.error_events)
@@ -346,6 +347,7 @@ class GeoipFilterTest < Test::Unit::TestCase
     data(geoip2_c: ["geoip2_c", "GeoIP2::Error", "lookup failed: The MaxMind DB file's search tree is corrupt"],
          geoip2_compat: ["geoip2_compat", "GeoIP2Compat::Error", "geoip2_compat - lookup failed: The MaxMind DB file's search tree is corrupt"])
     test "an error of the database is not treated as not found" do |(backend, error_class, message)|
+      require(backend == "geoip2_c" ? "geoip2" : backend)
       error = Object.const_get(error_class).new(message)
       d = run_with_lookup_error(backend, error, "66.102.3.80")
       assert_equal([], d.filtered_records)
