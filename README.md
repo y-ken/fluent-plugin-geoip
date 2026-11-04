@@ -5,6 +5,26 @@ Fluentd Filter plugin to add information about geographical location of IP addre
 fluent-plugin-geoip has bundled cost-free [GeoLite2 Free Downloadable Databases](https://dev.maxmind.com/geoip/geoip2/geolite2/) and [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.<br />
 Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.
 
+The bundled databases are from December 2017, so they do not have many IP addresses that are in use now, and some locations are out of date.
+MaxMind no longer updates the legacy GeoLite City database (`GeoLiteCity.dat`).
+[Since December 30, 2019](https://blog.maxmind.com/significant-changes-to-accessing-and-using-geolite-databases/), downloading the GeoLite2 databases needs a free MaxMind account, and they are under the [GeoLite2 End User License Agreement](https://www.maxmind.com/en/geolite2/eula) instead of a Creative Commons license, so this plugin does not bundle newer databases.
+To use an up-to-date database, download `GeoLite2-City.mmdb` with [geoipupdate](https://github.com/maxmind/geoipupdate), and set its path to `geoip2_database`.
+The directory depends on how geoipupdate is installed. It is `DatabaseDirectory` in `GeoIP.conf`:
+
+```
+<filter access.apache>
+  @type geoip
+  geoip_lookup_keys host
+  geoip2_database   /usr/share/GeoIP/GeoLite2-City.mmdb
+  <record>
+    city ${city.names.en["host"]}
+  </record>
+</filter>
+```
+
+Run `geoipupdate` regularly, for example with cron.
+This plugin reads the database when Fluentd starts, so restart or reload Fluentd after `geoipupdate` updates the file.
+
 The accuracy details for GeoLite City (free) and GeoIP City (purchased) has described at the page below.
 
 * http://www.maxmind.com/en/geolite_city_accuracy ([lang:ja](http://www.maxmind.com/ja/geolite_city_accuracy))
