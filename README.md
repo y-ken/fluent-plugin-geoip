@@ -229,6 +229,39 @@ We can avoid this behavior changing field order in `<record>` like following:
 </filter>
 ```
 
+#### Tips: values that are not found
+
+When the value of a lookup key is not found in the database, every placeholder for it becomes `null`.
+This happens for private and reserved IP addresses such as `10.0.0.1`, for IP addresses that the database does not have, and for values that are not an IP address, such as `-`, `1.2.3.4, 5.6.7.8` (X-Forwarded-For) or `1.2.3.4:8080`.
+Note that `geoip2_c` and `geoip2_compat` read some other forms as an IPv4 address, such as `1113195344` (`66.90.3.80`), and on Linux, `066.102.3.80` (`54.102.3.80`, in octal).
+In a string, `null` becomes an empty string, so `${location.latitude["host"]},${location.longitude["host"]}` becomes `,`.
+Elasticsearch rejects such a value for a `geo_point` field.
+Set `skip_adding_null_record true` to output such records without the geoip fields.
+
+When the IP address is found but the database has no location for it, `latitude` and `longitude` become `0.0`, not `null`.
+`skip_adding_null_record` checks only the first placeholder in `<record>` (with more than one key in `geoip_lookup_keys`, the first placeholder whose key is found), so the result depends on the order:
+
+```
+<filter access.apache>
+  @type geoip
+  geoip_lookup_keys host
+  <record>
+    city     ${city.names.en["host"]}
+    location ${location.latitude["host"]},${location.longitude["host"]}
+  </record>
+  skip_adding_null_record true
+</filter>
+```
+
+| host             | found          | output                                                          |
+|------------------|----------------|-----------------------------------------------------------------|
+| `66.102.3.80`    | with a city    | `{"host":"66.102.3.80","city":"Mountain View","location":"37.419200000000004,-122.0574"}` |
+| `193.56.131.219` | no location    | `{"host":"193.56.131.219"}`                                     |
+| `10.0.0.1`       | not found      | `{"host":"10.0.0.1"}`                                           |
+| `-`              | not an IP      | `{"host":"-"}`                                                  |
+
+If `location` comes first instead, the record for `193.56.131.219` gets `"location":"0.0,0.0"` and `"city":null`.
+
 #### Tips: nested attributes for geoip_lookup_keys
 
 See [Record Accessor Plugin Helper](https://docs.fluentd.org/plugin-helper-overview/api-plugin-helper-record_accessor)
