@@ -340,7 +340,7 @@ For example(geoip2_compat backend):
 
 Related configurations:
 
-* `backend_library`: `geoip2_compat` or `geoip2_c`
+* `backend_library`: `geoip2_c` (default) or `geoip2_compat`
 * `geoip2_database`: path to your GeoLite2-City.mmdb
 
 ### GeoIP legacy
@@ -364,7 +364,7 @@ Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/
 
 Related configurations:
 
-* `backend_library`: `geoip` (default)
+* `backend_library`: `geoip`
 * `geoip_database`: path to your GeoLiteCity.dat
 
 ## Parameters
@@ -414,10 +414,11 @@ Use geoip_lookup_keys instead.
 
 **skip_adding_null_record** (bool) (optional)
 
-* Default value: `nil`
+* Default value: `false`
 
-Skip adding geoip fields when this valaues to `true`.
-On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
+Skip adding geoip fields when this value is `true`.
+It checks the first placeholder in `<record>` whose lookup key is found in the database.
+When no lookup key is found, such as for a local IP, or that placeholder is `null`, it does not add the geoip fields. The fields of `<inject>` are still added.
 
 **backend_library** (enum) (optional)
 
