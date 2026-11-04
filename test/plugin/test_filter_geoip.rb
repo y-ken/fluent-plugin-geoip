@@ -86,33 +86,34 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
 
     test "dotted key is not treated as nested attributes" do
-      mock($log).warn("host.ip is not treated as nested attributes")
-      create_driver %[
+      d = create_driver %[
         geoip_lookup_keys host.ip
         <record>
           city ${city.names.en['host.ip']}
         </record>
       ]
+      # The warning goes to the log of this plugin, so @log_level applies to it.
+      assert_equal(1, d.logs.count {|line| line.include?("[warn]: host.ip is not treated as nested attributes") })
     end
 
     test "nested attributes bracket style" do
-      mock($log).warn(anything).times(0)
-      create_driver %[
+      d = create_driver %[
         geoip_lookup_keys  $["host"]["ip"]
         <record>
           geoip_city ${city.names.en['$["host"]["ip"]']}
         </record>
       ]
+      assert_equal([], d.logs.grep(/not treated as nested attributes/))
     end
 
     test "nested attributes dot style" do
-      mock($log).warn(anything).times(0)
-      create_driver %[
+      d = create_driver %[
         geoip_lookup_keys  $.host.ip
         <record>
           geoip_city ${city['$.host.ip']}
         </record>
       ]
+      assert_equal([], d.logs.grep(/not treated as nested attributes/))
     end
 
     test "invalid placeholder attributes" do
