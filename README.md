@@ -5,6 +5,27 @@ Fluentd Filter plugin to add information about geographical location of IP addre
 fluent-plugin-geoip has bundled cost-free [GeoLite2 Free Downloadable Databases](https://dev.maxmind.com/geoip/geoip2/geolite2/) and [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.<br />
 Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.
 
+The bundled databases are from December 2017, so they do not have many IP addresses that are in use now, and some locations are out of date.
+MaxMind no longer updates the legacy GeoLite City database (`GeoLiteCity.dat`).
+[Since December 30, 2019](https://blog.maxmind.com/significant-changes-to-accessing-and-using-geolite-databases/), downloading the GeoLite2 databases needs a free MaxMind account, and they are under the [GeoLite2 End User License Agreement](https://www.maxmind.com/en/geolite2/eula), which includes a Creative Commons license and adds further conditions, so this plugin does not bundle newer databases.
+To use an up-to-date database, download `GeoLite2-City.mmdb` with [geoipupdate](https://github.com/maxmind/geoipupdate), and set its path to `geoip2_database`.
+The directory depends on how geoipupdate is installed. It is `DatabaseDirectory` in `GeoIP.conf`:
+
+```
+<filter access.apache>
+  @type geoip
+  geoip_lookup_keys host
+  geoip2_database   /usr/share/GeoIP/GeoLite2-City.mmdb
+  <record>
+    city ${city.names.en["host"]}
+  </record>
+</filter>
+```
+
+Run `geoipupdate` regularly, for example with cron.
+This plugin reads the database when Fluentd starts, so restart or reload Fluentd after `geoipupdate` updates the file.
+If you update the file in another way, write a new file in the same directory and rename it, as `geoipupdate` does. Changing the `.mmdb` file in place while Fluentd is running can break lookups or crash Fluentd.
+
 The accuracy details for GeoLite City (free) and GeoIP City (purchased) has described at the page below.
 
 * http://www.maxmind.com/en/geolite_city_accuracy ([lang:ja](http://www.maxmind.com/ja/geolite_city_accuracy))
@@ -209,6 +230,39 @@ We can avoid this behavior changing field order in `<record>` like following:
 </filter>
 ```
 
+#### Tips: values that are not found
+
+When the value of a lookup key is not found in the database, every placeholder for it becomes `null`.
+This happens for private and reserved IP addresses such as `10.0.0.1`, for IP addresses that the database does not have, and for values that are not an IP address, such as `-`, `1.2.3.4, 5.6.7.8` (X-Forwarded-For) or `1.2.3.4:8080`.
+Note that `geoip2_c` and `geoip2_compat` read some other forms as an IPv4 address, such as `1113195344` (`66.90.3.80`), and on Linux, `066.102.3.80` (`54.102.3.80`, in octal).
+In a string, `null` becomes an empty string, so `${location.latitude["host"]},${location.longitude["host"]}` becomes `,`.
+Elasticsearch rejects such a value for a `geo_point` field.
+Set `skip_adding_null_record true` to output such records without adding the fields of `<record>`.
+
+When the IP address is found but the database has no location for it, `latitude` and `longitude` become `0.0`, not `null`.
+`skip_adding_null_record` checks only the first placeholder in `<record>` (with more than one key in `geoip_lookup_keys`, the first placeholder whose key is found), so the result depends on the order:
+
+```
+<filter access.apache>
+  @type geoip
+  geoip_lookup_keys host
+  <record>
+    city     ${city.names.en["host"]}
+    location ${location.latitude["host"]},${location.longitude["host"]}
+  </record>
+  skip_adding_null_record true
+</filter>
+```
+
+| host             | found          | output                                                          |
+|------------------|----------------|-----------------------------------------------------------------|
+| `66.102.3.80`    | with a city    | `{"host":"66.102.3.80","city":"Mountain View","location":"37.419200000000004,-122.0574"}` |
+| `193.56.131.219` | no location    | `{"host":"193.56.131.219"}`                                     |
+| `10.0.0.1`       | not found      | `{"host":"10.0.0.1"}`                                           |
+| `-`              | not an IP      | `{"host":"-"}`                                                  |
+
+If `location` comes first instead, the record for `193.56.131.219` gets `"location":"0.0,0.0"` and `"city":null`.
+
 #### Tips: nested attributes for geoip_lookup_keys
 
 See [Record Accessor Plugin Helper](https://docs.fluentd.org/plugin-helper-overview/api-plugin-helper-record_accessor)
@@ -340,7 +394,7 @@ For example(geoip2_compat backend):
 
 Related configurations:
 
-* `backend_library`: `geoip2_compat` or `geoip2_c`
+* `backend_library`: `geoip2_c` (default) or `geoip2_compat`
 * `geoip2_database`: path to your GeoLite2-City.mmdb
 
 ### GeoIP legacy
@@ -364,7 +418,7 @@ Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/
 
 Related configurations:
 
-* `backend_library`: `geoip` (default)
+* `backend_library`: `geoip`
 * `geoip_database`: path to your GeoLiteCity.dat
 
 ## Parameters
@@ -414,10 +468,11 @@ Use geoip_lookup_keys instead.
 
 **skip_adding_null_record** (bool) (optional)
 
-* Default value: `nil`
+* Default value: `false`
 
-Skip adding geoip fields when this valaues to `true`.
-On the case of getting nothing of GeoIP info (such as local IP), it will output the original record without changing anything.
+Skip adding geoip fields when this value is `true`.
+It checks the first placeholder in `<record>` whose lookup key is found in the database.
+When no lookup key is found, such as for a local IP, or that placeholder is `null`, it does not add any field of `<record>`, even one without a placeholder. The fields of `<inject>` are still added.
 
 **backend_library** (enum) (optional)
 
