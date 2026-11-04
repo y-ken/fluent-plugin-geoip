@@ -168,8 +168,11 @@ class GeoipFilterTest < Test::Unit::TestCase
   sub_test_case "loading" do
     # geoip-c needs libGeoIP, which geoip2_c and geoip2_compat do not use (#94).
     def run_ruby(script)
+      require "open3"
       lib = File.expand_path("../../lib", __dir__)
-      IO.popen([RbConfig.ruby, "-I", lib, "-e", script], err: [:child, :out], &:read)
+      out, err, status = Open3.capture3(RbConfig.ruby, "-I", lib, "-e", script)
+      assert_true(status.success?, err)
+      out
     end
 
     test "loading the plugin does not load geoip-c" do
@@ -204,7 +207,7 @@ class GeoipFilterTest < Test::Unit::TestCase
       error = assert_raise(Fluent::ConfigError) do
         create_driver("backend_library geoip\n<record>\ncity ${city[\"host\"]}\n</record>\n")
       end
-      assert_equal("You must install geoip-c gem. (LoadError: libGeoIP.so.1: cannot open shared object file)", error.message)
+      assert_equal("Cannot load geoip-c gem. (LoadError: libGeoIP.so.1: cannot open shared object file)", error.message)
     end
   end
 

@@ -217,7 +217,7 @@ module Fluent::Plugin
       # Keep the message, because it shows a missing shared library such as
       # libGeoIP.so.1 even when the gem is installed.
       gem_name = @backend_library == :geoip ? "geoip-c" : @backend_library
-      raise Fluent::ConfigError, "You must install #{gem_name} gem. (#{e.class}: #{e.message})"
+      raise Fluent::ConfigError, "Cannot load #{gem_name} gem. (#{e.class}: #{e.message})"
     end
   end
 end
