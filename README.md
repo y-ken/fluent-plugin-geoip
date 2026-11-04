@@ -42,6 +42,18 @@ $ brew install geoip
 $ bundle config build.geoip-c --with-geoip-dir=/usr/local/include/
 ```
 
+`geoip-devel` is not in EPEL 9. On RHEL 9 and its clones, such as Rocky Linux 9 and AlmaLinux 9, the `yum install geoip-devel` line above fails, and installing this plugin then fails while building geoip-c (`Failed to build gem native extension`). Build the GeoIP C library from source instead:
+
+```bash
+$ curl -LO https://github.com/maxmind/geoip-api-c/releases/download/v1.6.12/GeoIP-1.6.12.tar.gz
+$ tar xzf GeoIP-1.6.12.tar.gz
+$ cd GeoIP-1.6.12
+$ ./configure && make && sudo make install
+$ echo /usr/local/lib | sudo tee /etc/ld.so.conf.d/geoip.conf && sudo ldconfig
+```
+
+geoip-c is planned to become an optional dependency in v1.4.0 (#108).
+
 [geoip2_c](https://github.com/fluent-plugins-nursery/geoip2_c) does not need libmaxminddb installed on the system. When it is installed, it downloads the source of [libmaxminddb](https://github.com/maxmind/libmaxminddb) from GitHub and builds it. So installing this plugin needs:
 
 * access to `github.com`. Without it, the installation fails with `Failed to open TCP connection to github.com:443`.
