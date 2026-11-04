@@ -7,7 +7,7 @@ Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city)
 
 The bundled databases are from December 2017, so they do not have many IP addresses that are in use now, and some locations are out of date.
 MaxMind no longer updates the legacy GeoLite City database (`GeoLiteCity.dat`).
-[Since December 30, 2019](https://blog.maxmind.com/significant-changes-to-accessing-and-using-geolite-databases/), downloading the GeoLite2 databases needs a free MaxMind account, and they are under the [GeoLite2 End User License Agreement](https://www.maxmind.com/en/geolite2/eula) instead of a Creative Commons license, so this plugin does not bundle newer databases.
+[Since December 30, 2019](https://blog.maxmind.com/significant-changes-to-accessing-and-using-geolite-databases/), downloading the GeoLite2 databases needs a free MaxMind account, and they are under the [GeoLite2 End User License Agreement](https://www.maxmind.com/en/geolite2/eula), which includes a Creative Commons license and adds further conditions, so this plugin does not bundle newer databases.
 To use an up-to-date database, download `GeoLite2-City.mmdb` with [geoipupdate](https://github.com/maxmind/geoipupdate), and set its path to `geoip2_database`.
 The directory depends on how geoipupdate is installed. It is `DatabaseDirectory` in `GeoIP.conf`:
 
@@ -24,6 +24,7 @@ The directory depends on how geoipupdate is installed. It is `DatabaseDirectory`
 
 Run `geoipupdate` regularly, for example with cron.
 This plugin reads the database when Fluentd starts, so restart or reload Fluentd after `geoipupdate` updates the file.
+If you update the file in another way, write a new file in the same directory and rename it, as `geoipupdate` does. Changing the `.mmdb` file in place while Fluentd is running can break lookups or crash Fluentd.
 
 The accuracy details for GeoLite City (free) and GeoIP City (purchased) has described at the page below.
 
@@ -236,7 +237,7 @@ This happens for private and reserved IP addresses such as `10.0.0.1`, for IP ad
 Note that `geoip2_c` and `geoip2_compat` read some other forms as an IPv4 address, such as `1113195344` (`66.90.3.80`), and on Linux, `066.102.3.80` (`54.102.3.80`, in octal).
 In a string, `null` becomes an empty string, so `${location.latitude["host"]},${location.longitude["host"]}` becomes `,`.
 Elasticsearch rejects such a value for a `geo_point` field.
-Set `skip_adding_null_record true` to output such records without the geoip fields.
+Set `skip_adding_null_record true` to output such records without adding the fields of `<record>`.
 
 When the IP address is found but the database has no location for it, `latitude` and `longitude` become `0.0`, not `null`.
 `skip_adding_null_record` checks only the first placeholder in `<record>` (with more than one key in `geoip_lookup_keys`, the first placeholder whose key is found), so the result depends on the order:
@@ -471,7 +472,7 @@ Use geoip_lookup_keys instead.
 
 Skip adding geoip fields when this value is `true`.
 It checks the first placeholder in `<record>` whose lookup key is found in the database.
-When no lookup key is found, such as for a local IP, or that placeholder is `null`, it does not add the geoip fields. The fields of `<inject>` are still added.
+When no lookup key is found, such as for a local IP, or that placeholder is `null`, it does not add any field of `<record>`, even one without a placeholder. The fields of `<inject>` are still added.
 
 **backend_library** (enum) (optional)
 
