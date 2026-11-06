@@ -2,11 +2,11 @@
 
 Fluentd Filter plugin to add information about geographical location of IP addresses with Maxmind GeoIP databases.
 
-fluent-plugin-geoip has bundled cost-free [GeoLite2 Free Downloadable Databases](https://dev.maxmind.com/geoip/geoip2/geolite2/) and [GeoLite City database](http://dev.maxmind.com/geoip/legacy/geolite/) by default.<br />
-Also you can use purchased [GeoIP City database](http://www.maxmind.com/en/city) ([lang:ja](http://www.maxmind.com/ja/city)) which costs starting from $50.
+fluent-plugin-geoip has bundled cost-free [GeoLite2 Free Downloadable Databases](https://dev.maxmind.com/geoip/geoip2/geolite2/) and the legacy GeoLite City database by default.<br />
+Also you can use the purchased [GeoIP City database](https://www.maxmind.com/en/geoip-databases) with `geoip2_database`.
 
 The bundled databases are from December 2017, so they do not have many IP addresses that are in use now, and some locations are out of date.
-MaxMind no longer updates the legacy GeoLite City database (`GeoLiteCity.dat`).
+MaxMind [no longer updates](https://blog.maxmind.com/discontinuation-of-the-geolite-legacy-databases/) the legacy GeoLite City database (`GeoLiteCity.dat`).
 [Since December 30, 2019](https://blog.maxmind.com/significant-changes-to-accessing-and-using-geolite-databases/), downloading the GeoLite2 databases needs a free MaxMind account, and they are under the [GeoLite2 End User License Agreement](https://www.maxmind.com/en/geolite2/eula), which includes a Creative Commons license and adds further conditions, so this plugin does not bundle newer databases.
 To use an up-to-date database, download `GeoLite2-City.mmdb` with [geoipupdate](https://github.com/maxmind/geoipupdate), and set its path to `geoip2_database`.
 The directory depends on how geoipupdate is installed. It is `DatabaseDirectory` in `GeoIP.conf`:
@@ -26,10 +26,16 @@ Run `geoipupdate` regularly, for example with cron.
 This plugin reads the database when Fluentd starts, so restart or reload Fluentd after `geoipupdate` updates the file.
 If you update the file in another way, write a new file in the same directory and rename it, as `geoipupdate` does. Changing the `.mmdb` file in place while Fluentd is running can break lookups or crash Fluentd.
 
-The accuracy details for GeoLite City (free) and GeoIP City (purchased) has described at the page below.
+With `backend_library geoip`, the plugin reads only the legacy `.dat` file in `geoip_database`, and ignores `geoip2_database`.
+The purchased GeoIP Legacy databases were also [retired in 2022](https://blog.maxmind.com/geoip-legacy-databases-have-been-retired/), so no legacy database gets updates.
+So set `geoip2_database` as above, change `backend_library` to `geoip2_c`, and rewrite the placeholders in the [GeoIP2](#geoip2) form.
+For example, `${city["host"]}` becomes `${city.names.en["host"]}`, `${latitude["host"]}` becomes `${location.latitude["host"]}`, and `${country_code["host"]}` becomes `${country.iso_code["host"]}`.
+With the legacy placeholders, `geoip2_c` does not raise an error, but the values are wrong.
+For example, for `66.102.3.80`, `${latitude["host"]}` becomes `0.0`, `${country_code["host"]}` becomes `null`, and `${city["host"]}` becomes a Hash.
 
-* http://www.maxmind.com/en/geolite_city_accuracy ([lang:ja](http://www.maxmind.com/ja/geolite_city_accuracy))
-* http://www.maxmind.com/en/city_accuracy ([lang:ja](http://www.maxmind.com/ja/city_accuracy))
+MaxMind compares the accuracy of its current City databases, purchased and free, at the page below.
+
+* https://www.maxmind.com/en/geoip-accuracy-comparison
 
 ## Requirements
 
@@ -279,15 +285,15 @@ It is a sample to get friendly geo point recdords for elasticsearch with JSON pa
   geoip_lookup_keys      host
   <record>
     # lat lon as properties
-    # ex. {"lat" => 37.4192008972168, "lon" => -122.05740356445312 }
+    # ex. {"lat" => 37.419200000000004, "lon" => -122.0574 }
     location_properties  '{ "lat" : ${location.latitude["host"]}, "lon" : ${location.longitude["host"]} }'
   
     # lat lon as string
-    # ex. "37.4192008972168,-122.05740356445312"
+    # ex. "37.419200000000004,-122.0574"
     location_string      ${location.latitude["host"]},${location.longitude["host"]}
     
     # GeoJSON (lat lon as array) is useful for Kibana's bettermap.
-    # ex. [-122.05740356445312, 37.4192008972168]
+    # ex. [-122.0574, 37.419200000000004]
     location_array       '[${location.longitude["host"]},${location.latitude["host"]}]'
   </record>
 
@@ -345,10 +351,10 @@ $ echo '{"host":"66.102.9.80","message":"test"}' | fluent-cat test.geoip
 
 # check the result at stdout
 $ tail /var/log/td-agent/td-agent.log
-2016-02-01 12:04:37 +0900 test.geoip: {"host":"66.102.9.80","message":"test","city":"Mountain View","lat":37.4192008972168,"lon":-122.05740356445312}
+2016-02-01 12:04:37 +0900 test.geoip: {"host":"66.102.9.80","message":"test","city":"Mountain View","lat":37.419200000000004,"lon":-122.0574}
 ```
 
-You can check geoip data format using [utils/dump.rb](https://github.com/okkez/fluent-plugin-geoip/utils/dump.rb).
+You can check geoip data format using [utils/dump.rb](https://github.com/y-ken/fluent-plugin-geoip/blob/master/utils/dump.rb).
 
 ```
 $ bundle exec ruby utils/dump.rb geoip2 66.102.3.80
@@ -360,9 +366,7 @@ $ bundle exec ruby utils/dump.rb geoip 66.102.3.80
 
 ### GeoIP2
 
-You can get any fields in the
-[GeoLite2](http://dev.maxmind.com/geoip/geoip2/geolite2/) database and
-[GeoIP2 Downloadable Databases](http://dev.maxmind.com/geoip/geoip2/downloadable/).
+You can get any fields in the [GeoLite2](http://dev.maxmind.com/geoip/geoip2/geolite2/) database and [GeoIP2 Downloadable Databases](https://dev.maxmind.com/geoip/docs/databases/city-and-country/).
 
 For example(geoip2_c backend):
 
@@ -414,7 +418,7 @@ For more example of geolocating, you can try these websites like [Geo IP Address
 | ${area_code[lookup_field]}     | 607               | char(3)      | **only for US**  |
 | ${region[lookup_field]}        | "NY"              | char(2)      | A two character ISO-3166-2 or FIPS 10-4 code |
 
-Further more specification available at http://dev.maxmind.com/geoip/legacy/csv/#GeoIP_City_Edition_CSV_Database_Fields
+See [the archived MaxMind page](https://web.archive.org/web/20181228225721/https://dev.maxmind.com/geoip/legacy/csv/#GeoIP_Legacy_City_CSV_Database_Fields) for more details.
 
 Related configurations:
 
