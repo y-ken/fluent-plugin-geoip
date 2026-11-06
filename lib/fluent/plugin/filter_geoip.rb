@@ -40,9 +40,6 @@ module Fluent::Plugin
     config_param :geoip_lookup_keys, :array, value_type: :string, default: ["host"]
     config_param :geoip_lookup_key, :string, default: nil, deprecated: "Use geoip_lookup_keys instead"
     config_param :skip_adding_null_record, :bool, default: false
-
-    config_set_default :@log_level, "warn"
-
     config_param :backend_library, :enum, list: BACKEND_LIBRARIES, default: :geoip2_c
 
     def configure(conf)
