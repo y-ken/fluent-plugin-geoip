@@ -132,8 +132,8 @@ Note that filter version of geoip plugin does not have handling tag feature.
   # To avoid get stacktrace error with `[null, null]` array for elasticsearch.
   skip_adding_null_record  true
 
-  # Set @log_level (default: warn)
-  @log_level         info
+  # Set @log_level (default: the global log level of Fluentd)
+  @log_level         warn
 </filter>
 ```
 
