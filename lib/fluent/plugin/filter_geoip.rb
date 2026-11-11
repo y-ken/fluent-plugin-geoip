@@ -18,14 +18,14 @@ module Fluent::Plugin
 
     BACKEND_LIBRARIES = [:geoip, :geoip2_compat, :geoip2_c]
 
-    REGEXP_PLACEHOLDER_SINGLE = /^\$\{
+    REGEXP_PLACEHOLDER_SINGLE = /\A\$\{
                                   (?<geoip_key>-?[^\[\]]+)
                                     \[
                                       (?:(?<dq>")|(?<sq>'))
                                         (?<record_key>-?(?(<dq>)[^"{}]+|[^'{}]+))
                                       (?(<dq>)"|')
                                     \]
-                                  \}$/x
+                                  \}\z/x
     # A placeholder. REGEXP_PLACEHOLDER_SCAN also matches a quote around it.
     REGEXP_PLACEHOLDER = /\$\{[^\}]+?\}/
     REGEXP_PLACEHOLDER_SCAN = /['"]?(#{REGEXP_PLACEHOLDER})['"]?/
@@ -142,12 +142,12 @@ module Fluent::Plugin
     end
 
     def json?(text)
-      text.match(/^\[.+\]$/) || text.match(/^\{.+\}$/)
+      text.match(/\A\s*\[.+\]\s*\z/m) || text.match(/\A\s*\{.+\}\s*\z/m)
     end
 
     def quoted_value?(text)
       # to improbe compatibility with fluentd v1-config
-      text.match(/(^'.+'$|^".+"$)/)
+      text.match(/(\A'.+'\z|\A".+"\z)/)
     end
 
     def parse_json(message)

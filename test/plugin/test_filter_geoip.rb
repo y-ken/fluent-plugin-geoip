@@ -408,6 +408,32 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
   end
 
+  sub_test_case "a value with more than one line" do
+    test "replaces the placeholders as a string" do
+      record = filter_one(<<~'CONF')
+        last     "City:\n${city.names.en['host']}"
+        each     "${city.names.en['host']}\n${country.iso_code['host']}"
+        quoted   "\"Hi\"\nfrom ${city.names.en['host']}"
+        brackets "Location:\n[${location.latitude['host']}]"
+      CONF
+      assert_equal("City:\nMountain View", record["last"])
+      assert_equal("Mountain View\nUS", record["each"])
+      assert_equal("\"Hi\"\nfrom Mountain View", record["quoted"])
+      assert_equal("Location:\n[37.419200000000004]", record["brackets"])
+    end
+
+    test "is JSON when the whole value is JSON" do
+      record = filter_one(<<~'CONF')
+        object   "{\n  \"lat\": ${location.latitude['host']}\n}"
+        nested   "[\n[${location.longitude['host']}, ${location.latitude['host']}]\n]"
+        newline  "[${location.latitude['host']}]\n"
+      CONF
+      assert_equal({"lat" => 37.419200000000004}, record["object"])
+      assert_equal([[-122.0574, 37.419200000000004]], record["nested"])
+      assert_equal([37.419200000000004], record["newline"])
+    end
+  end
+
   sub_test_case "geoip2_c" do
     def test_filter_with_dot_key
       config = %[
