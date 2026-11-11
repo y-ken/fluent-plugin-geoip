@@ -30,6 +30,11 @@ class GeoipFilterTest < Test::Unit::TestCase
     d.filtered_records
   end
 
+  def filter_one(record_section, host = "66.102.3.80")
+    config = "backend_library geoip2_c\n<record>\n#{record_section}\n</record>\n"
+    filter(config, [{"host" => host}]).first
+  end
+
   def setup_geoip_mock(d)
     plugin = d.instance
     db = Object.new
@@ -363,11 +368,6 @@ class GeoipFilterTest < Test::Unit::TestCase
   end
 
   sub_test_case "a placeholder next to a quote in a string" do
-    def filter_one(record_section, host = "66.102.3.80")
-      config = "backend_library geoip2_c\n<record>\n#{record_section}\n</record>\n"
-      filter(config, [{"host" => host}]).first
-    end
-
     test "keeps the quotes and replaces the placeholder" do
       record = filter_one(<<~'CONF')
         double  'City is "${city.names.en["host"]}"'
@@ -387,6 +387,24 @@ class GeoipFilterTest < Test::Unit::TestCase
       # 203.0.113.1 is a test address described in RFC5737
       record = filter_one(%q(double  'City is "${city.names.en["host"]}"'), "203.0.113.1")
       assert_equal('City is ""', record["double"])
+    end
+  end
+
+  sub_test_case "placeholders in more than one value" do
+    data(geoip2_c: ["geoip2_c", "location.latitude", 37.419200000000004],
+         geoip2_compat: ["geoip2_compat", "latitude", 37.419200000000004],
+         geoip: ["geoip", "latitude", 37.4192008972168])
+    test "do not run across two values" do |(backend, key, latitude)|
+      config = %[
+        backend_library #{backend}
+        <record>
+          price  'in $'
+          loc    '{"lat": ${#{key}["host"]}}'
+        </record>
+      ]
+      record = filter(config, [{"host" => "66.102.3.80"}]).first
+      assert_equal("in $", record["price"])
+      assert_equal({"lat" => latitude}, record["loc"])
     end
   end
 

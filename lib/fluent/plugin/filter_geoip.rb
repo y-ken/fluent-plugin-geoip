@@ -85,7 +85,7 @@ module Fluent::Plugin
         }
       }
 
-      @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{|placeholder| placeholder[0] }.uniq
+      @placeholder_keys = @map.values.flat_map {|v| v.scan(REGEXP_PLACEHOLDER) }.uniq
       @placeholder_keys.each do |key|
         m = key.match(REGEXP_PLACEHOLDER_SINGLE)
         raise Fluent::ConfigError, "Invalid placeholder attributes: #{key}" unless m
