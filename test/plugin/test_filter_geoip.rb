@@ -434,6 +434,36 @@ class GeoipFilterTest < Test::Unit::TestCase
     end
   end
 
+  sub_test_case "a placeholder in a JSON string" do
+    test "puts the value into the string" do
+      record = filter_one(<<~'CONF')
+        two      '["${location.latitude["host"]},${location.longitude["host"]}"]'
+        first    '{"label": "${city.names.en["host"]} office"}'
+        middle   '{"label": "City: ${city.names.en["host"]}!"}'
+        escaped  '["\"${country.iso_code["host"]}\""]'
+      CONF
+      assert_equal(["37.419200000000004,-122.0574"], record["two"])
+      assert_equal({"label" => "Mountain View office"}, record["first"])
+      assert_equal({"label" => "City: Mountain View!"}, record["middle"])
+      assert_equal(["\"US\""], record["escaped"])
+    end
+
+    test "does not take a quote in a comment as a string" do
+      record = filter_one(<<~'CONF')
+        block  '{"a": 1 /* " */, "lat": ${location.latitude["host"]}, "b": 2}'
+        line   "{\"a\": 1, // say \"hi\n\"lat\": ${location.latitude['host']}, \"b\": 2}"
+      CONF
+      assert_equal({"a" => 1, "lat" => 37.419200000000004, "b" => 2}, record["block"])
+      assert_equal({"a" => 1, "lat" => 37.419200000000004, "b" => 2}, record["line"])
+    end
+
+    test "gives an empty string in the string when the IP is not found" do
+      # 203.0.113.1 is a test address described in RFC5737
+      record = filter_one(%q(two '["${location.latitude["host"]},${location.longitude["host"]}"]'), "203.0.113.1")
+      assert_equal([","], record["two"])
+    end
+  end
+
   sub_test_case "geoip2_c" do
     def test_filter_with_dot_key
       config = %[
