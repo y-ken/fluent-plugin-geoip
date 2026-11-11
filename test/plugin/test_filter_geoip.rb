@@ -30,6 +30,11 @@ class GeoipFilterTest < Test::Unit::TestCase
     d.filtered_records
   end
 
+  def filter_one(record_section, host = "66.102.3.80")
+    config = "backend_library geoip2_c\n<record>\n#{record_section}\n</record>\n"
+    filter(config, [{"host" => host}]).first
+  end
+
   def setup_geoip_mock(d)
     plugin = d.instance
     db = Object.new
@@ -363,11 +368,6 @@ class GeoipFilterTest < Test::Unit::TestCase
   end
 
   sub_test_case "a placeholder next to a quote in a string" do
-    def filter_one(record_section, host = "66.102.3.80")
-      config = "backend_library geoip2_c\n<record>\n#{record_section}\n</record>\n"
-      filter(config, [{"host" => host}]).first
-    end
-
     test "keeps the quotes and replaces the placeholder" do
       record = filter_one(<<~'CONF')
         double  'City is "${city.names.en["host"]}"'
@@ -387,6 +387,80 @@ class GeoipFilterTest < Test::Unit::TestCase
       # 203.0.113.1 is a test address described in RFC5737
       record = filter_one(%q(double  'City is "${city.names.en["host"]}"'), "203.0.113.1")
       assert_equal('City is ""', record["double"])
+    end
+  end
+
+  sub_test_case "placeholders in more than one value" do
+    data(geoip2_c: ["geoip2_c", "location.latitude", 37.419200000000004],
+         geoip2_compat: ["geoip2_compat", "latitude", 37.419200000000004],
+         geoip: ["geoip", "latitude", 37.4192008972168])
+    test "do not run across two values" do |(backend, key, latitude)|
+      config = %[
+        backend_library #{backend}
+        <record>
+          price  'in $'
+          loc    '{"lat": ${#{key}["host"]}}'
+        </record>
+      ]
+      record = filter(config, [{"host" => "66.102.3.80"}]).first
+      assert_equal("in $", record["price"])
+      assert_equal({"lat" => latitude}, record["loc"])
+    end
+  end
+
+  sub_test_case "a value with more than one line" do
+    test "replaces the placeholders as a string" do
+      record = filter_one(<<~'CONF')
+        last     "City:\n${city.names.en['host']}"
+        each     "${city.names.en['host']}\n${country.iso_code['host']}"
+        quoted   "\"Hi\"\nfrom ${city.names.en['host']}"
+        brackets "Location:\n[${location.latitude['host']}]"
+      CONF
+      assert_equal("City:\nMountain View", record["last"])
+      assert_equal("Mountain View\nUS", record["each"])
+      assert_equal("\"Hi\"\nfrom Mountain View", record["quoted"])
+      assert_equal("Location:\n[37.419200000000004]", record["brackets"])
+    end
+
+    test "is JSON when the whole value is JSON" do
+      record = filter_one(<<~'CONF')
+        object   "{\n  \"lat\": ${location.latitude['host']}\n}"
+        nested   "[\n[${location.longitude['host']}, ${location.latitude['host']}]\n]"
+        newline  "[${location.latitude['host']}]\n"
+      CONF
+      assert_equal({"lat" => 37.419200000000004}, record["object"])
+      assert_equal([[-122.0574, 37.419200000000004]], record["nested"])
+      assert_equal([37.419200000000004], record["newline"])
+    end
+  end
+
+  sub_test_case "a placeholder in a JSON string" do
+    test "puts the value into the string" do
+      record = filter_one(<<~'CONF')
+        two      '["${location.latitude["host"]},${location.longitude["host"]}"]'
+        first    '{"label": "${city.names.en["host"]} office"}'
+        middle   '{"label": "City: ${city.names.en["host"]}!"}'
+        escaped  '["\"${country.iso_code["host"]}\""]'
+      CONF
+      assert_equal(["37.419200000000004,-122.0574"], record["two"])
+      assert_equal({"label" => "Mountain View office"}, record["first"])
+      assert_equal({"label" => "City: Mountain View!"}, record["middle"])
+      assert_equal(["\"US\""], record["escaped"])
+    end
+
+    test "does not take a quote in a comment as a string" do
+      record = filter_one(<<~'CONF')
+        block  '{"a": 1 /* " */, "lat": ${location.latitude["host"]}, "b": 2}'
+        line   "{\"a\": 1, // say \"hi\n\"lat\": ${location.latitude['host']}, \"b\": 2}"
+      CONF
+      assert_equal({"a" => 1, "lat" => 37.419200000000004, "b" => 2}, record["block"])
+      assert_equal({"a" => 1, "lat" => 37.419200000000004, "b" => 2}, record["line"])
+    end
+
+    test "gives an empty string in the string when the IP is not found" do
+      # 203.0.113.1 is a test address described in RFC5737
+      record = filter_one(%q(two '["${location.latitude["host"]},${location.longitude["host"]}"]'), "203.0.113.1")
+      assert_equal([","], record["two"])
     end
   end
 

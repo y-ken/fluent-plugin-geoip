@@ -18,17 +18,18 @@ module Fluent::Plugin
 
     BACKEND_LIBRARIES = [:geoip, :geoip2_compat, :geoip2_c]
 
-    REGEXP_PLACEHOLDER_SINGLE = /^\$\{
+    REGEXP_PLACEHOLDER_SINGLE = /\A\$\{
                                   (?<geoip_key>-?[^\[\]]+)
                                     \[
                                       (?:(?<dq>")|(?<sq>'))
                                         (?<record_key>-?(?(<dq>)[^"{}]+|[^'{}]+))
                                       (?(<dq>)"|')
                                     \]
-                                  \}$/x
-    # A placeholder. REGEXP_PLACEHOLDER_SCAN also matches a quote around it.
+                                  \}\z/x
     REGEXP_PLACEHOLDER = /\$\{[^\}]+?\}/
-    REGEXP_PLACEHOLDER_SCAN = /['"]?(#{REGEXP_PLACEHOLDER})['"]?/
+    # In a JSON value: a placeholder, alone or in quotes, a JSON string, which
+    # can have placeholders in it, or a comment, which can have a quote in it.
+    REGEXP_JSON_PLACEHOLDER = %r{(?<quote>['"]?)(?<placeholder>#{REGEXP_PLACEHOLDER})\k<quote>|(?<string>"(?:#{REGEXP_PLACEHOLDER}|\\.|[^"\\])*+")|/\*.*?\*/|//[^\n]*}m
 
     GEOIP_KEYS = %w(city latitude longitude country_code3 country_code country_name dma_code area_code region)
     GEOIP2_COMPAT_KEYS = %w(city country_code country_name latitude longitude postal_code region region_name)
@@ -73,8 +74,7 @@ module Fluent::Plugin
           @map[k] = v
           validate_json = Proc.new {
             begin
-              dummy_text = 'dummy_text'.to_json
-              JSON.parse(v.gsub(REGEXP_PLACEHOLDER_SCAN, dummy_text), allow_duplicate_key: true, allow_comments: true)
+              JSON.parse(replace_json_placeholders(v, Hash.new("dummy_text")), allow_duplicate_key: true, allow_comments: true)
             rescue JSON::ParserError => e
               message = "geoip: failed to parse '#{v}' as json."
               log.error message, error: e
@@ -85,7 +85,7 @@ module Fluent::Plugin
         }
       }
 
-      @placeholder_keys = @map.values.join.scan(REGEXP_PLACEHOLDER_SCAN).map{|placeholder| placeholder[0] }.uniq
+      @placeholder_keys = @map.values.flat_map {|v| v.scan(REGEXP_PLACEHOLDER) }.uniq
       @placeholder_keys.each do |key|
         m = key.match(REGEXP_PLACEHOLDER_SINGLE)
         raise Fluent::ConfigError, "Invalid placeholder attributes: #{key}" unless m
@@ -127,11 +127,7 @@ module Fluent::Plugin
         if value.match(REGEXP_PLACEHOLDER_SINGLE) #|| value.match(REGEXP_PLACEHOLDER_BRACKET_SINGLE)
           rewrited = placeholder[value]
         elsif json?(value)
-          rewrited = value.gsub(REGEXP_PLACEHOLDER_SCAN) {|match|
-            match = match[1..match.size-2] if quoted_value?(match)
-            placeholder[match].to_json
-          }
-          rewrited = parse_json(rewrited)
+          rewrited = parse_json(replace_json_placeholders(value, placeholder))
         else
           # Keep the quotes around a placeholder in a string.
           rewrited = value.gsub(REGEXP_PLACEHOLDER, placeholder)
@@ -141,13 +137,28 @@ module Fluent::Plugin
       record
     end
 
+    # A placeholder in a JSON string with other text gives its value as text,
+    # so that the string stays valid.
+    def replace_json_placeholders(json, placeholder)
+      json.gsub(REGEXP_JSON_PLACEHOLDER) {
+        m = $~
+        if m[:placeholder]
+          placeholder[m[:placeholder]].to_json
+        elsif m[:string]
+          m[:string].gsub(REGEXP_PLACEHOLDER) {|key| placeholder[key].to_s.to_json[1..-2] }
+        else
+          m[0]
+        end
+      }
+    end
+
     def json?(text)
-      text.match(/^\[.+\]$/) || text.match(/^\{.+\}$/)
+      text.match(/\A\s*\[.+\]\s*\z/m) || text.match(/\A\s*\{.+\}\s*\z/m)
     end
 
     def quoted_value?(text)
       # to improbe compatibility with fluentd v1-config
-      text.match(/(^'.+'$|^".+"$)/)
+      text.match(/(\A'.+'\z|\A".+"\z)/)
     end
 
     def parse_json(message)
